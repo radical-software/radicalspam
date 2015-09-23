@@ -49,13 +49,3 @@ Contributing
 To contribute to the project, fork it on GitHub and send a pull request.
 
 All contributions and suggestions are welcome.
-
-.. _MongoDB: http://mongodb.org/
-.. _Docker: https://www.docker.com/
-.. _Ubuntu: http://www.ubuntu.com/
-.. _Dockerfile: http://dockerfile.github.io/#/mongodb
-.. _Python: http://www.python.org/
-.. _Gevent: http://www.gevent.org/
-.. _Postfix: http://www.postfix.org
-.. _Postfix_Policy: http://www.postfix.org/SMTPD_POLICY_README.html
-.. _Coroutine: http://en.wikipedia.org/wiki/Coroutine
