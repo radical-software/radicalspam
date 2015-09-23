@@ -1,0 +1,6 @@
+# Liste noire des destinataires internes
+# Placez des anciens utilisateurs ou des adresses souvent attaqués
+# Attention, plus aucun mail ne sera reçu pour ces adresses !
+# Ex (1 entrée par ligne) :
+# mon_user_spam@mon_domain.com		REJECT SPAM
+

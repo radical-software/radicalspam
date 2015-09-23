@@ -1,0 +1,22 @@
+=head2 Fri Feb 26 04:25:26 2010: C<Module> L<razor-agents|razor-agents>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/razor/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 2.84>
+
+=item *
+
+C<EXE_FILES: bin/razor-client bin/razor-admin bin/razor-check bin/razor-report bin/razor-revoke>
+
+=back
+

@@ -1,0 +1,18 @@
+# Fichier de configuration SpamAssassin pour ajouter vos rules personnalisés
+
+header MY_DIANETIC_1		Subject =~ /dianetic/i
+describe MY_DIANETIC_1		Subject Dianetic / Scientologie
+score MY_DIANETIC_1		2.0
+
+header MY_DIANETIC_2            From =~ /dianetic/i
+describe MY_DIANETIC_2          From Dianetic / Scientologie
+score MY_DIANETIC_2             2.0
+
+meta DIGEST_MULTIPLE            RAZOR2_CHECK + DCC_CHECK > 1
+describe DIGEST_MULTIPLE        Message hits more than one network digest check
+tflags DIGEST_MULTIPLE          net
+
+header MY_GENERIC_DOWN          From =~ /wanadoo\.fr|hotmail\.fr|hotmail\.com|yahoo\.com|laposte\.net|orange\.fr|gmail\.com|free\.fr/i
+describe MY_GENERIC_DOWN        Diminution du scoring pour Wanadoo, hotmail et autres
+score MY_GENERIC_DOWN           -1.0
+

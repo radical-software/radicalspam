@@ -1,0 +1,5 @@
+# Suppression d'entete pour les mails sortants vers internet
+/^Received:/                    IGNORE
+/^X-Mailer:/                    IGNORE
+/^X-MIMETrack:/                 IGNORE
+/^X-Quarantine-ID:/             IGNORE

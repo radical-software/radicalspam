@@ -1,0 +1,14 @@
+/addons/perl/lib/site_perl/5/File/HomeDir.pm
+/addons/perl/lib/site_perl/5/File/HomeDir/Darwin.pm
+/addons/perl/lib/site_perl/5/File/HomeDir/Darwin/Carbon.pm
+/addons/perl/lib/site_perl/5/File/HomeDir/Darwin/Cocoa.pm
+/addons/perl/lib/site_perl/5/File/HomeDir/Driver.pm
+/addons/perl/lib/site_perl/5/File/HomeDir/MacOS9.pm
+/addons/perl/lib/site_perl/5/File/HomeDir/Unix.pm
+/addons/perl/lib/site_perl/5/File/HomeDir/Windows.pm
+/addons/perl/man/man3/File::HomeDir.3
+/addons/perl/man/man3/File::HomeDir::Darwin.3
+/addons/perl/man/man3/File::HomeDir::Darwin::Carbon.3
+/addons/perl/man/man3/File::HomeDir::Darwin::Cocoa.3
+/addons/perl/man/man3/File::HomeDir::Unix.3
+/addons/perl/man/man3/File::HomeDir::Windows.3

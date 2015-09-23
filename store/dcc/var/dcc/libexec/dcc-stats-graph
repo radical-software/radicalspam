@@ -1,0 +1,488 @@
+#! /bin/sh -e
+
+# graph collected DCC statistics in .png files.
+#   [-x]	    debugging
+#   [-q]	    quiet
+#   [-B]	    make big graphs
+#   [-G db]	    make graph of database size
+#   [-G db-min]	    make graph of database size without maximum size
+#   [-G traffic-noratio]	database size without spam ratios
+#   [-G traffic]		mail message rates and spam ratios
+#   [-G ratio]			spam ratios
+#   [-h dcc_homedir]
+#   [-T /usr/local/bin/rrdtool]
+#		    see the FreeBSD package or elsewhere
+#   [-O rrdopts]    additional rrdtool options for all graphs
+#   [-t title]	    for graphs; '%1' is replaced with the type of graph
+#   [-s span]	    time covered by graphs.
+#			The default is "1day,1week,1month,1year"
+#   [-S stop-epoch] end of the graph
+#   [-y vresol]    day, minute, ... vertical access for messages
+#   gname	    basic file name for graphs, - for stdout
+#   rrd1,...	    RRD databases that will be combined to produce the graphs
+
+# The rrd files must be initialzed with dcc-stats-init, which is called
+#   automatically by dcc-stats-collect.  Data must be collected every
+#   10 minutes with dcc-stats-collect.  The rrd files should be in
+#   /var/dcc/stats
+
+
+# Copyright (c) 2010 by Rhyolite Software, LLC
+#
+# This agreement is not applicable to any entity which sells anti-spam
+# solutions to others or provides an anti-spam solution as part of a
+# security solution sold to other entities, or to a private network
+# which employs the DCC or uses data provided by operation of the DCC
+# but does not provide corresponding data to other users.
+#
+# Permission to use, copy, modify, and distribute this software without
+# changes for any purpose with or without fee is hereby granted, provided
+# that the above copyright notice and this permission notice appear in all
+# copies and any distributed versions or copies are either unchanged
+# or not called anything similar to "DCC" or "Distributed Checksum
+# Clearinghouse".
+#
+# Parties not eligible to receive a license under this agreement can
+# obtain a commercial license to use DCC by contacting Rhyolite Software
+# at sales@rhyolite.com.
+#
+# A commercial license would be for Distributed Checksum and Reputation
+# Clearinghouse software.  That software includes additional features.  This
+# free license for Distributed ChecksumClearinghouse Software does not in any
+# way grant permision to use Distributed Checksum and Reputation Clearinghouse
+# software
+#
+# THE SOFTWARE IS PROVIDED "AS IS" AND RHYOLITE SOFTWARE, LLC DISCLAIMS ALL
+# WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES
+# OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL RHYOLITE SOFTWARE, LLC
+# BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES
+# OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
+# WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION,
+# ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+#
+#	Rhyolite Software DCC 1.3.138-1.77 $Revision$
+#	Generated automatically from dcc-stats-graph.in by configure.
+
+DCC_HOMEDIR=/var/dcc
+DEBUG=
+RRDTOOL=/usr/local/bin/rrdtool
+# check the args once to get the home directory
+while getopts "xqBdRmh:G:T:O:t:s:S:y:" c; do
+    case $c in
+	x) set -x; DEBUG=-x=;;
+	h) DCC_HOMEDIR="$OPTARG";;
+	*) ;;
+    esac
+done
+. $DCC_HOMEDIR/dcc_conf
+
+BIG=
+GRAPH_DB=
+GRAPH_TRAFFIC=
+GRAPH_RATIO=
+GRAPH_SET=
+RRDOPTS=
+TITLE_SET=
+SPANS_SET=
+SPANS="1day,1week,1month,1year"
+STOP=
+YRESOL=86400
+YLABEL=day
+USAGE="`basename $0`: [-xqB] [-h homedir] [-T rrdtool] [-O rrdopts] [-G type]
+	[t title] [-s spans] [-S stop-epoch] [-y day|hour|min|sec] gname rrd"
+OPTIND=1
+while getopts "xqBdRmh:G:T:O:t:s:S:y:" c; do
+    case $c in
+	x) ;;				    # handled above
+	q) exec 1>/dev/null;;
+	h) ;;				    # handled above
+	B) BIG=yes;;
+	d) GRAPH_SET=yes; GRAPH_DB=yes;;			# obsolete
+	R) GRAPH_RATIO=;;					# obsolete
+	m) GRAPH_SET=yes; GRAPH_TRAFFIC=yes; GRAPH_RATIO=yes;;	# obsolete
+	G) GRAPH_SET=yes
+	    case "$OPTARG" in
+		db) GRAPH_DB=yes;;
+		db-min) GRAPH_DB=db-min;;
+		traffic-noratio) GRAPH_TRAFFIC=yes;;
+		traffic) GRAPH_TRAFFIC=yes; GRAPH_RATIO=yes;;
+		ratio) GRAPH_RATIO=yes;;
+		*) echo "$USAGE" 1>&2; exit 1;;
+	    esac
+	    ;;
+	T) RRDTOOL="$OPTARG";;
+	O) RRDOPTS="$RRDOPTS $OPTARG";;
+	t) TITLE_SET=yes; TITLE_PAT="$OPTARG";;
+	s) SPANS_SET=yes; SPANS="$OPTARG";;
+	S) if expr "$OPTARG" : '[0-9]*$' >/dev/null		\
+		&& test "$OPTARG" -gt 1033870038		\
+		     -a "$OPTARG" -lt 2000000000; then
+		STOP=$OPTARG
+	    else
+		echo "$OPTARG is a bad number of seconds since the Epoch" 1>&2
+		exit 1;
+	    fi
+	    ;;
+	y)
+	case "$OPTARG" in
+	    day) YRESOL=86400; YLABEL=day;;
+	    hour) YRESOL=3600; YLABEL=hour;;
+	    min) YRESOL=60; YLABEL=min;;
+	    sec) YRESOL=1; YLABEL=sec;;
+	esac
+	;;
+	*) echo "$USAGE" 1>&2; exit 1;;
+    esac
+done
+shift `expr $OPTIND - 1 || true`
+if test "$#" -lt 1; then
+    echo "$USAGE" 1>&2
+    exit 1
+fi
+
+if test -z "$GRAPH_SET"; then
+    GRAPH_RATIO=yes			# bug compatible with old versions
+fi
+
+BASE_DIR="$DCC_HOMEDIR/stats"
+cd "$BASE_DIR"
+
+GNAME=$1
+if test "$#" -ge 2; then
+    # assume .rrd file is same as the graph name if the .rrd file is absent
+    shift
+fi
+FILE=$1
+# trim unneeded directory names
+FILE=`echo "$FILE" | sed -e "s@$BASE_DIR/*@@"`
+if test ! -s "$FILE"; then
+    echo "$FILE is not a good rrd file" 1>&2
+    exit 1
+fi
+
+if test "$TITLE_SET" != yes; then
+    if test "X$GNAME" != X-; then
+	TITLE_PAT="%1 at $GNAME"
+    else
+	TITLE_PAT="%1"
+    fi
+fi
+
+if test -n "`$RRDTOOL version | grep '^RRDtool 1\.0'`"; then
+    RRDVERSION=1.0
+else
+    RRDVERSION=
+fi
+RRDGRAPH="$RRDTOOL graph --color CANVAS#e0e0e0"
+
+if test -n "$BIG"; then
+    XYEAR_MONTHS=1
+    GSIZE="--width 600 --height 240"
+    P_YGRID=					# % or spam ratio vertical grid
+    M_YGRID=					# messages vertical grid
+    H_YGRID="--alt-autoscale-max"		# database vertical grid
+    M_YLABEL="message/$YLABEL"
+    AVGFMT="%.0lf/$YLABEL"
+    LABEL_REPORTS="total mail"
+    LABEL_BULK="possible spam"
+    LABEL_NET_BULK="untrapped possible spam"
+    LABEL_SPAM="likely spam"
+    LABEL_NET_SPAM="untrapped likely spam"
+    LABEL_TRAPPED="trapped spam"
+else
+    XYEAR_MONTHS=2
+    GSIZE="--width 200 --height 40"
+    P_YGRID="--y-grid 25:2"
+    if test "$RRDVERSION" = 1.0; then
+	M_YGRID="--alt-y-mrtg"
+	H_YGRID="--alt-y-mrtg"
+    else
+	M_YGRID=
+	H_YGRID=
+    fi
+    M_YLABEL=msgs/$YLABEL
+    AVGFMT="%.1lf %S/$YLABEL"
+    LABEL_REPORTS="total"
+    LABEL_BULK="possible"
+    LABEL_NET_BULK="possible"
+    LABEL_SPAM="likely"
+    LABEL_NET_SPAM="likely"
+    LABEL_TRAPPED="trapped"
+fi
+
+# use only a few colors to try to be portable
+C_GREEN='#00ff7f'
+C_YELLOW='#ffff00'
+C_PINK='#ffb6c1'
+C_INDIANRED='#ff6a6a'
+C_RED2='#ee0000'
+C_BLUE='#0000ff'
+C_SKY_BLUE='#87cefa'
+C_ORANGE='#ffa500'
+C_DARK_ORANGE='#ff8c00'
+C_BLACK='#000000'
+
+
+FTYPE=png
+ATTRIBS="$GSIZE --imgformat PNG --lower-limit 0"
+
+
+
+# find good ending dates
+date2ts () {
+    if test "$3" -eq 0; then
+	eval $1=new $2="' '"
+	return
+    fi
+
+    NEW_END=$3
+    if test -n "$4"; then
+	NEW_END=`expr $NEW_END - $NEW_END % $4 || true`
+    fi
+    eval $1=$NEW_END
+
+    if NEW_TS=`date -r $NEW_END '+%Y/%m/%d %R %Z'  2>/dev/null`; then : ;
+    else
+	# deal with systems that do not have `date -r`
+	NEW_TS=`/usr/bin/perl -e "use POSIX qw(strftime); \
+		print strftime '%Y/%m/%d %R %Z', localtime($LAST);"`
+    fi
+    if test "$RRDVERSION" != 1.0; then
+	NEW_TS=`echo "$NEW_TS" | sed -e 's/:/\\\:/g'`
+    fi
+    eval $2="'COMMENT:$NEW_TS'"
+}
+
+STEP=
+HAVE_MAX=
+HAVE_TRAPPED=
+eval `$RRDTOOL info $FILE						\
+	| sed -n -e 's/^step = \([0-9][0-9]*\)/STEP=\1/p'		\
+	    -e 's/^rra.*cf = .MAX.*/HAVE_MAX=yes/p'			\
+	    -e 's/ds.trapped.*DERIVE.*/HAVE_TRAPPED=yes/p'`
+
+LAST=`$RRDTOOL last $FILE`
+if test -n "$STOP" -a "$LAST" -gt 0"$STOP"; then
+    LAST="$STOP"
+fi
+# avoid odd times when individual servers were polled
+LAST=`expr $LAST - $LAST % $STEP || true`
+
+date2ts END END_COMMENT $LAST
+date2ts END_DAY END_DAY_COMMENT $LAST 86400
+
+
+for DUR in `echo $SPANS | tr ',' ' '`; do
+    case $DUR in
+	1d*)
+	    DUR=1day
+	    SPAN=24h
+	    XGRID="--x-grid HOUR:1:HOUR:2:HOUR:2:0:%k"
+	    # as the "rdtool graph" man page suggests, don't be fooled
+	    # by daylight savings time
+	    ;;
+	1w*)
+	    DUR=1week
+	    SPAN=168h
+	    # 24*3600 = 86400
+	    if test -n "$BIG"; then
+		XGRID="--x-grid HOUR:6:DAY:1:DAY:1:86400:%a\ %m/%d"
+	    else
+		XGRID="--x-grid HOUR:6:DAY:1:DAY:1:86400:%a"
+	    fi
+	    # as the "rdtool graph" man page suggests, don't be fooled
+	    # by daylight savings time
+	    ;;
+	1m*)
+	    DUR=1month
+	    SPAN=$DUR
+	    XGRID="--x-grid WEEK:1:WEEK:1:WEEK:1:0:%b/%d"
+	    ;;
+	1y*)
+	    DUR=1year
+	    SPAN=$DUR
+	    # label every month on big graphs and every other on small
+	    # 28*24*60*60 = 2419200
+	    XGRID="--x-grid MONTH:1:YEAR:1:MONTH:$XYEAR_MONTHS:2419200:%b"
+	    ;;
+	2y*)
+	    DUR=2years
+	    SPAN=$DUR
+	    if test "$XYEAR_MONTHS" = 2; then
+		# small graph with 1 label/year
+		# 365*24*60*60 = 31536000 = year
+		XGRID="--x-grid YEAR:1:YEAR:1:YEAR:1:31536000:%Y"
+	    else
+		# label every other month on big graphs
+		# 28*24*60*60 = 2419200
+		XYEAR_MONTHS=2
+		XGRID="--x-grid MONTH:1:YEAR:1:MONTH:2:2419200:%b"
+	    fi
+	    ;;
+	*)
+	    case $DUR in
+		3y*) DUR=3years;;
+		4y*) DUR=4years;;
+		# assume everything else is the 5 year maximum in the RRD files
+		*) DUR=5years;;
+	    esac
+	    SPAN=$DUR
+	    if test "$XYEAR_MONTHS" = 2; then
+		# small graph with 1 label/year
+		# 365*24*60*60 = 31536000 = year
+		XGRID="--x-grid YEAR:1:YEAR:1:YEAR:1:31536000:%Y"
+	    else
+		# big graph with 1 label/year
+		XGRID="--x-grid MONTH:1:MONTH:12:MONTH:12:0:%b/%y"
+	    fi
+	    ;;
+    esac
+
+    ONAME=-
+
+    # see if we have any counts of trapped spam
+    if test -n "$HAVE_TRAPPED" -a -n "$HAVE_MAX"; then
+	DEF_TRAPPED="DEF:trapped=$FILE:trapped:AVERAGE"
+	NET='trapped,-,'
+	N='[-+0-9e.]*'
+	SHOW_TRAPPED=`rrdtool fetch $FILE AVERAGE			\
+		    --end $END --start end-$SPAN --resolution $SPAN	\
+			2>/dev/null					\
+	    | sed -n -e "/^[0-9]*: $N $N $N [-+0.]*[1-9]/{"		\
+		    -e 's/.*/yes/p' -e q -e '}'`
+    else
+	DEF_TRAPPED=
+	NET=
+	SHOW_TRAPPED=
+    fi
+    PERCENT='/,100,*,0,100,LIMIT'
+
+    if test $YRESOL -eq 1; then
+	YUNIT="0,1e12,LIMIT"
+    else
+	YUNIT="$YRESOL,*,0,1e12,LIMIT"
+    fi
+
+    if test "$GRAPH_RATIO" = yes; then
+	if test "X$GNAME" != X-; then
+	    ONAME=$GNAME-spam-ratio.$DUR.$FTYPE
+	    echo "$ONAME: " | tr -d '\012'
+	fi
+	TITLE=`echo "$TITLE_PAT" | sed -e 's/%1/Spam Ratio/g'`
+	RATIOS="'CDEF:percentbulk=bulk,${NET}reports,${NET}$PERCENT'
+	    'CDEF:percentspam=spam,${NET}reports,${NET}$PERCENT'"
+	if test -n "$SHOW_TRAPPED"; then
+	    RATIOS="$RATIOS
+		'CDEF:percenttrapped=trapped,reports,$PERCENT'
+		'AREA:percentbulk$C_INDIANRED:$LABEL_NET_BULK'
+		'AREA:percentspam$C_PINK:$LABEL_NET_SPAM'
+		'LINE:percenttrapped$C_YELLOW:$LABEL_TRAPPED'"
+	else
+	    RATIOS="$RATIOS
+	    'AREA:percentbulk$C_INDIANRED:$LABEL_BULK'
+	    'AREA:percentspam$C_PINK:$LABEL_SPAM'"
+	fi
+	RATIOS="$RATIOS'\j'
+	    'GPRINT:percentbulk:AVERAGE:%.0lf%%'"
+	if test -z "$BIG"; then
+	    RATIOS="$RATIOS '$END_COMMENT\j'"
+	else
+	    RATIOS="$RATIOS
+		'GPRINT:percentspam:AVERAGE:%.0lf%%'"
+	    if test -n "$SHOW_TRAPPED"; then
+		RATIOS="$RATIOS
+		    'GPRINT:percenttrapped:AVERAGE:%.0lf%%'"
+	    fi
+	    RATIOS="$RATIOS'\j' '$END_COMMENT\c'"
+	fi
+	eval $RRDGRAPH $ONAME "$RRDOPTS"				\
+	    --end $END --start end-$SPAN				\
+	    $ATTRIBS "--title '$TITLE'"					\
+	    $XGRID $P_YGRID --upper-limit 100				\
+	    DEF:reports=$FILE:reports:AVERAGE				\
+	    DEF:bulk=$FILE:bulk:AVERAGE					\
+	    DEF:spam=$FILE:spam:AVERAGE					\
+	    $DEF_TRAPPED						\
+	    $RATIOS
+	if test "X$GNAME" = X-; then
+	    exit
+	fi
+    fi
+
+    if test "$GRAPH_TRAFFIC" = yes; then
+	if test "X$GNAME" != X-; then
+	    ONAME=$GNAME-spam.$DUR.$FTYPE
+	    echo "$ONAME: " | tr -d '\012'
+	fi
+	TITLE=`echo "$TITLE_PAT" | sed -e 's/%1/Mail Checked/g'`
+	LEGEND="'CDEF:preports=reports,${NET}$YUNIT'
+		'GPRINT:preports:AVERAGE:$AVGFMT'"
+	if test -n "$BIG"; then
+	    LEGEND="$LEGEND
+		'CDEF:pbulk=bulk,${NET}$YUNIT'
+		'CDEF:pspam=spam,${NET}$YUNIT'
+		'GPRINT:pbulk:AVERAGE:$AVGFMT'
+		'GPRINT:pspam:AVERAGE:$AVGFMT'"
+	    if test -n "$SHOW_TRAPPED"; then
+		LEGEND="$LEGEND
+		    'GPRINT:gtrapped:AVERAGE:$AVGFMT'"
+	    fi
+	    LEGEND="$LEGEND'\j'
+		'$END_COMMENT\c'"
+	else
+	    LEGEND="$LEGEND '$END_COMMENT\j'"
+	fi
+	TRAFFIC="$DEF_TRAPPED
+	    'DEF:reports=$FILE:reports:AVERAGE'
+	    'CDEF:greports=reports,$YUNIT'
+	    'DEF:bulk=$FILE:bulk:AVERAGE'
+	    'CDEF:gbulk=bulk,$YUNIT'
+	    'DEF:spam=$FILE:spam:AVERAGE'
+	    'CDEF:gspam=spam,$YUNIT'
+	    'AREA:greports$C_SKY_BLUE:$LABEL_REPORTS'
+	    'AREA:gbulk$C_INDIANRED:$LABEL_BULK'
+	    'AREA:gspam$C_PINK:$LABEL_SPAM'"
+	if test -n "$SHOW_TRAPPED"; then
+	    TRAFFIC="$TRAFFIC
+		'CDEF:gtrapped=trapped,$YUNIT'
+		'AREA:gtrapped$C_YELLOW:$LABEL_TRAPPED'"
+	fi
+	eval $RRDGRAPH $ONAME "$RRDOPTS"				\
+	    --end $END --start end-$SPAN				\
+	    $ATTRIBS "--title '$TITLE'"					\
+	    $XGRID $M_YGRID --vertical-label $M_YLABEL			\
+	    $TRAFFIC"'\j'" $LEGEND
+	if test "X$GNAME" = X-; then
+	    exit
+	fi
+    fi
+
+    # database size graph
+    if test -n "$GRAPH_DB" -a \( -n "$SPANS_SET" -o $SPAN != 24h \); then
+	if test "X$GNAME" != X-; then
+	    ONAME=$GNAME-hashes.$DUR.$FTYPE
+	    echo "$ONAME: " | tr -d '\012'
+	fi
+	TITLE=`echo "$TITLE_PAT" | sed -e 's/%1/Checksums/g'`
+	# show only the minimum values for old RRD files
+	if test "$GRAPH_DB" = yes; then
+	    if test -z "$HAVE_MAX"; then
+		GRAPH_DB=db-min
+	    fi
+	fi
+	if test "$GRAPH_DB" = db-min; then
+	    DISPLAY="DEF:minhash=$FILE:hashes:MIN
+		AREA:minhash$C_PINK"
+	else
+	    DISPLAY="DEF:minhash=$FILE:hashes:MIN
+		DEF:maxhash=$FILE:hashes:MAX
+		AREA:maxhash$C_INDIANRED:max
+		AREA:minhash$C_PINK:min"
+	fi
+	# take the database values from the last server
+	eval $RRDGRAPH $ONAME $RRDOPTS					\
+	    --end $END_DAY --start end-$SPAN				\
+	    $ATTRIBS --step 86400 "--title '$TITLE'"			\
+	    $XGRID $H_YGRID $DISPLAY "'$END_DAY_COMMENT\c'"
+    fi
+done

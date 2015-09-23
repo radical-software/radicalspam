@@ -1,0 +1,6 @@
+/addons/perl/bin/shasum
+/addons/perl/lib/5/i386-linux-thread-multi/Digest/SHA.pm
+/addons/perl/lib/5/i386-linux-thread-multi/auto/Digest/SHA/SHA.bs
+/addons/perl/lib/5/i386-linux-thread-multi/auto/Digest/SHA/SHA.so
+/addons/perl/man/man1/shasum.1
+/addons/perl/man/man3/Digest::SHA.3

@@ -1,0 +1,14 @@
+<!-- common HTML footing used near the bottom of the web pages
+
+	This file can appear in the cgi directory or a per-user directory -->
+
+<P>
+<HR>
+<ADDRESS>
+<A HREF="http://www.dcc-servers.net/dcc/">
+    <IMG class=logo ALT="DCC logo"
+	SRC="http://logos.dcc-servers.net/border.png">
+    </A>
+</ADDRESS>
+
+<!-- common footing HTML -->

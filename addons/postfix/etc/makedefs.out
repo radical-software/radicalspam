@@ -1,0 +1,15 @@
+# Do not edit -- this file documents how Postfix was built for your machine.
+SYSTYPE	= LINUX2
+AR	= ar
+ARFL	= rv
+RANLIB	= ranlib
+SYSLIBS	= -L/usr/local/src/rs-install/build/depends/lib -lssl -lcrypto -ldb -lsasl2 -ldb -lnsl -lresolv
+CC	= gcc $(WARN) -DDEF_MANPAGE_DIR=\"/addons/postfix/man\" -DDEF_README_DIR=\"no\" -DDEF_SAMPLE_DIR=\"no\" -DDEF_HTML_DIR=\"no\" -DDEF_CONFIG_DIR=\"/addons/postfix/etc\" -DEF_COMMAND_DIR=\"/addons/postfix/sbin\" -DEF_DAEMON_DIR=\"/addons/postfix/libexec\" -DEF_DATA_DIR=\"/addons/postfix/var/data\" -DEF_QUEUE_DIR=\"/addons/postfix/var/spool\" -DEF_MAILQ_PATH=\"/addons/postfix/bin/mailq\" -DEF_NEWALIAS_PATH=\"/addons/postfix/bin/newaliases\" -DEF_SENDMAIL_PATH=\"/addons/postfix/sbin/sendmail\" -DUSE_TLS -DHAS_DB -I/usr/local/src/rs-install/build/depends/include -DUSE_SASL_AUTH -DUSE_CYRUS_SASL -I/usr/local/src/rs-install/build/depends/include/sasl
+OPT	= -O
+DEBUG	= -g
+AWK	= awk
+STRCASE = 
+EXPORT	= AUXLIBS='-L/usr/local/src/rs-install/build/depends/lib -lssl -lcrypto -ldb -lsasl2' CCARGS='-DDEF_MANPAGE_DIR=\"/addons/postfix/man\" -DDEF_README_DIR=\"no\" -DDEF_SAMPLE_DIR=\"no\" -DDEF_HTML_DIR=\"no\" -DDEF_CONFIG_DIR=\"/addons/postfix/etc\" -DEF_COMMAND_DIR=\"/addons/postfix/sbin\" -DEF_DAEMON_DIR=\"/addons/postfix/libexec\" -DEF_DATA_DIR=\"/addons/postfix/var/data\" -DEF_QUEUE_DIR=\"/addons/postfix/var/spool\" -DEF_MAILQ_PATH=\"/addons/postfix/bin/mailq\" -DEF_NEWALIAS_PATH=\"/addons/postfix/bin/newaliases\" -DEF_SENDMAIL_PATH=\"/addons/postfix/sbin/sendmail\" -DUSE_TLS -DHAS_DB -I/usr/local/src/rs-install/build/depends/include -DUSE_SASL_AUTH -DUSE_CYRUS_SASL -I/usr/local/src/rs-install/build/depends/include/sasl' OPT='-O' DEBUG='-g'
+WARN	= -Wall -Wno-comment -Wformat -Wimplicit -Wmissing-prototypes \
+	-Wparentheses -Wstrict-prototypes -Wswitch -Wuninitialized \
+	-Wunused

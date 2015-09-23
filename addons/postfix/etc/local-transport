@@ -1,0 +1,6 @@
+# Règles de routage
+# Ajoutez pour chaque domaine, le lieu de livraison final (en général un serveur de messagerie sur le LAN)
+# exemple.net    relay:[127.0.0.2]:25
+# 
+# pour utiliser une ip source specifique lors de la livraison :
+# exemple.net    smtp-customers:[127.0.0.2]:25

@@ -1,0 +1,5 @@
+# /etc/cron.d :
+# ln -sf /var/rs/addons/rs-tools/cron/rs-nagios-stats-postfix-logs.cron /etc/cron.d/rs-nagios-stats-postfix-logs
+
+# Mise a jour des compteurs toutes les 5 minutes :
+*/5 * * * * root nice -n 19 su - -c "/var/rs/addons/nagios/bin/stats_postfix_logs.sh > /var/rs/addons/nagios/var/stats_postfix_logs_counters.txt"

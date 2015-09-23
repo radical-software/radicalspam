@@ -1,0 +1,13 @@
+prefix=/usr/local/src/rs-install/build/depends
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+modules=1
+
+Name: libXML
+Version: 2.6.32
+Description: libXML library version2.
+Requires:
+Libs: -L${libdir} -lxml2
+Libs.private:  -L/usr/local/src/rs-install/build/depends/lib -lz -L/usr/local/src/rs-install/build/depends/lib -liconv -lm 
+Cflags: -I${includedir}/libxml2 -I/usr/local/src/rs-install/build/depends/include 

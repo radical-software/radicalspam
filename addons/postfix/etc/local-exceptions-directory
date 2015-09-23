@@ -1,0 +1,6 @@
+# Annuaire de l'entreprise
+# Utilisez ce fichier pour ajouter des adresses qui n'existent pas lors de l'extraction automatique dans local-directory
+# Placez toutes les adresses pour lesquelles vous acceptez de recevoir des mails
+# 1 ligne par email ou domain
+# email@exemple.net	OK
+# @exemple2.net		OK

@@ -1,0 +1,25 @@
+Metadata-Version: 1.0
+Name: pyXLWriter
+Version: 0.4a3
+Summary: A library for generating Excel compatible Spreadsheets
+Home-page: http://sourceforge.net/projects/pyxlwriter/
+Author: Evgeny Filatov
+Author-email: fufff@users.sourceforge.net
+License: GNU LGPL
+Download-URL: http://sourceforge.net/project/showfiles.php?group_id=99682&package_id=106979
+Description: pyXLWriter is a Python library for generating Excel compatible spreadsheets.
+        It's a port of John McNamara's Perl Spreadsheet::WriteExcel module
+        version 1.01 to Python. It allows writing of Excel spreadsheets
+        without the need for COM objects.
+        
+Keywords: xls excel spreadsheet workbook database table
+Platform: Platform Independent
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Classifier: Topic :: Office/Business :: Financial :: Spreadsheet
+Classifier: Topic :: Database
+Classifier: Topic :: Internet :: WWW/HTTP :: Dynamic Content :: CGI Tools/Libraries

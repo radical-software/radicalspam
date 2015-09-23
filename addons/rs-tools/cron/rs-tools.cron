@@ -1,0 +1,23 @@
+# Dans /etc/cron.d :
+# ln -sf /var/rs/addons/rs-tools/cron/rs-tools.cron /etc/cron.d/rs-tools
+
+# ---------------------------------------------------------------------------------------------
+# Description : Purge automatique des mails en queue d'attente avec Expéditeur MAILER-DAEMON
+# Fréquence   : Toutes les heures
+0 * * * * root su - -c "/var/rs/addons/postfix/scripts/purge-mailerdaemon.sh" >/dev/null 2>/dev/null
+
+# ---------------------------------------------------------------------------------------------
+# Description : Purge des fichiers et répertoires temporaires d'Amavis
+# Fréquence   : 1 fois par jour à 02H00
+0 2 * * * root su - -c "/var/rs/addons/amavis/scripts/purge-amavis-tmp.sh" >/dev/null 2>/dev/null
+
+# ---------------------------------------------------------------------------------------------
+# Description : Purge des Spam, Virus et Banned en quarantaine (si activé dans amavis)
+# Fréquence   : 1 fois par jour à 02H15
+15 2 * * * root su - -c "/var/rs/addons/amavis/scripts/purge-amavis-quarantine.sh" >/dev/null 2>/dev/null
+
+# ---------------------------------------------------------------------------------------------
+# Description : Libère les mails Postfix placés en queue HOLD (mailing par exemple)
+# Fréquence   : 1 fois par jour à 22H00
+00 22 * * * root su - -c "/var/rs/addons/postfix/scripts/release-hold.sh" >/dev/null 2>/dev/null
+

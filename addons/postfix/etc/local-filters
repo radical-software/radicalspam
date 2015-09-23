@@ -1,0 +1,7 @@
+# Utilisez ce fichier pour définir le routage vers la politique de filtrage Amavis
+# Vous pouvez configurer par domaine et/ou par adresse email
+# Exemples :
+# domain.com		FILTER smtp-amavis:[127.0.0.1]:10024
+# mail@domain.com	FILTER smtp-amavis:[127.0.0.1]:10032
+# Le numéro de port (10024, ...) doit correspondre à une politique dans amavisd.conf
+

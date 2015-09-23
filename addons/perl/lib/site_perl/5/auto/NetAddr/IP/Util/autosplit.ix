@@ -1,0 +1,10 @@
+# Index created by AutoSplit for ../../blib/lib/NetAddr/IP/Util.pm
+#    (file acts as timestamp)
+package NetAddr::IP::Util;
+sub ipv6_aton  ;
+sub ipv6_n2x  ;
+sub ipv6_n2d  ;
+sub inet_any2n ($);
+sub inet_n2dx ($);
+sub inet_n2ad ($);
+1;

@@ -1,0 +1,15 @@
+# Liste blanche des expéditeurs
+# Ajouter une adresse par ligne
+# Ex pour un domaine complet : .domain-externe.com
+# Ex pour un email : nom@domain-externe.com
+.radicalspam.org
+.radical-spam.org
+.radicalspam.fr
+.radical-spam.fr
+.radicalspam.com
+.radical-spam.com
+.davinsys.net
+.osyos-services.com
+.osyosservices.com
+.abakus.fr
+.espace-groupware.com

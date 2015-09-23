@@ -1,0 +1,16 @@
+/addons/perl/lib/site_perl/5/IO/AtomicFile.pm
+/addons/perl/lib/site_perl/5/IO/InnerFile.pm
+/addons/perl/lib/site_perl/5/IO/Lines.pm
+/addons/perl/lib/site_perl/5/IO/Scalar.pm
+/addons/perl/lib/site_perl/5/IO/ScalarArray.pm
+/addons/perl/lib/site_perl/5/IO/Stringy.pm
+/addons/perl/lib/site_perl/5/IO/Wrap.pm
+/addons/perl/lib/site_perl/5/IO/WrapTie.pm
+/addons/perl/man/man3/IO::AtomicFile.3
+/addons/perl/man/man3/IO::InnerFile.3
+/addons/perl/man/man3/IO::Lines.3
+/addons/perl/man/man3/IO::Scalar.3
+/addons/perl/man/man3/IO::ScalarArray.3
+/addons/perl/man/man3/IO::Stringy.3
+/addons/perl/man/man3/IO::Wrap.3
+/addons/perl/man/man3/IO::WrapTie.3

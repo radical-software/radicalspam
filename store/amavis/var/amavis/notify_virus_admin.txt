@@ -1,0 +1,40 @@
+Date: %d
+From: %f
+Subject: [? [:ccat_maj] |Clean (?) mail|Clean mail|TEMPFAIL-ed mail|\
+OVERSIZED mail|INVALID HEADER in mail|spam|SPAM|UNCHECKED contents in mail|\
+BANNED contents (%F) in mail|VIRUS (%V) in mail]\
+ FROM [?%l||LOCAL ][?%a||\[%a\] ][?%s|<>|[?%o|(?)|%s]]
+To: [? %#T |undisclosed-recipients: ;|[<%T>|, ]]
+[? %#C |#|Cc: [<%C>|, ]]
+Message-ID: <VA%i@%h>
+
+---------------------------------------------------------------------
+Policy  : %p
+Hit     : %c
+From    : %o
+Subject : %j
+Quar.ID : %i
+Msg.ID  : %n
+Reçu le : %d
+Tag l2  : %2
+MTA id  : %Q
+Cli. IP : %a
+Cli. DNS: %g
+------------------------- Destinataires -----------------------------
+Non délivré(s) :
+%O
+
+Délivré(s) :
+%D
+---------------------------------------------------------------------
+# Chemin vers le fichier en quarantaine
+%q
+[%A
+]\
+
+------------------------- BEGIN HEADERS -----------------------------
+Return-Path: %s
+[%H
+]\
+-------------------------- END HEADERS ------------------------------
+

@@ -1,0 +1,31 @@
+Date: %d
+From: %f
+Subject: SPAM FROM <%o> - \[%c\]
+To: [? %#T |undisclosed-recipients: ;|[<%T>|, ]]
+Message-ID: <SA%i@%h>
+
+---------------------------------------------------------------------
+ID Quarantaine : %i
+---------------------------------------------------------------------
+Policy  : %p
+Hit     : %c sur _REQD_
+From    : %o
+Subject : %j
+Reçu le : %d
+Client  : %a - %g
+------------------------- Destinataires -----------------------------
+Non délivré(s) :
+%O
+
+Délivré(s) :
+%D
+
+[%A
+]\
+
+------------------------- BEGIN HEADERS -----------------------------
+Return-Path: %s
+[%H
+]\
+-------------------------- END HEADERS ------------------------------
+

@@ -1,0 +1,6 @@
+# Adresses IP et plages IP des machines locales autorisés à envoyer des mails à travers ce relais SMTP
+# 1 adresse par ligne avec en 2ème colonne un commentaire (idéalement le nom fonctionnel de la machine)
+# Exemple :
+# 127.0.0.2		# serveur Domino 1
+
+127.0.0.1       # loopback

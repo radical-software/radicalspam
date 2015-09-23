@@ -1,0 +1,118 @@
+# ==========================================================================
+# service type  private unpriv  chroot  wakeup  maxproc command + args
+#               (yes)   (yes)   (yes)   (never) (100)
+# ==========================================================================
+pickup    fifo  n       -       n       60      1       pickup
+cleanup   unix  n       -       n       -       0       cleanup
+qmgr      fifo  n       -       n       300     1       qmgr
+tlsmgr    unix  -       -       n       1000?   1       tlsmgr
+rewrite   unix  -       -       n       -       -       trivial-rewrite
+bounce    unix  -       -       n       -       0       bounce
+defer     unix  -       -       n       -       0       bounce
+trace     unix  -       -       n       -       0       bounce
+verify    unix  -       -       n       -       1       verify
+flush     unix  n       -       n       1000?   0       flush
+proxymap  unix  -       -       n       -       -       proxymap
+proxywrite unix -       -       n       -       1       proxymap
+smtp      unix  -       -       n       -       -       smtp
+relay     unix  -       -       n       -       -       smtp
+        -o smtp_fallback_relay=
+showq     unix  n       -       n       -       -       showq
+error     unix  -       -       n       -       -       error
+retry     unix  -       -       n       -       -       error
+discard   unix  -       -       n       -       -       discard
+local     unix  -       n       n       -       -       local
+virtual   unix  -       n       n       -       -       virtual
+lmtp      unix  -       -       n       -       -       lmtp
+anvil     unix  -       -       n       -       1       anvil
+scache    unix  -       -       n       -       1       scache
+
+# WAN - ETH0 - Interface pour les mails en provenance d'internet
+127.0.0.2:smtp      inet  n       -       n       -       -      smtpd
+   -o mynetworks=hash:/addons/postfix/etc/local-mynetworks-wan
+
+# LAN - ETH1 - Interface pour les mails en provenance du LAN
+127.0.0.3:smtp      inet  n       -       n       -       -      smtpd
+   -o content_filter=smtp-amavis:[127.0.0.1]:10029
+   -o mynetworks=hash:/addons/postfix/etc/local-mynetworks-lan
+   -o smtpd_client_restrictions=permit_mynetworks,reject
+   -o smtpd_helo_restrictions=
+   -o smtpd_sender_restrictions=reject_non_fqdn_sender,hash:/addons/postfix/etc/local-relays,hash:/addons/postfix/etc/local-exceptions-senders,reject
+   -o smtpd_recipient_restrictions=reject_non_fqdn_recipient,permit_mynetworks,reject
+   -o smtpd_reject_unlisted_sender=yes
+   -o smtpd_reject_unlisted_recipient=no
+
+# LOOPBACK
+127.0.0.1:smtp       inet  n       -       n       -       -       smtpd
+   -o cleanup_service_name=cleanup-localhost
+   -o content_filter=
+   -o smtpd_client_restrictions=
+   -o smtpd_helo_restrictions=
+   -o smtpd_sender_restrictions=
+   -o smtpd_recipient_restrictions=permit_mynetworks,reject
+
+# CLEANUP DE NETTOYAGE
+headers-clean	unix	n	-	n	-	0	cleanup
+   -o header_checks=regexp:/addons/postfix/etc/local-headers-clean
+
+cleanup-localhost   unix  n       -       n       -       0       cleanup
+   -o message_size_limit=0
+   -o mailbox_size_limit=0
+
+# Sortie SMTP vers clients
+#smtp-customers unix        -       -       n       -       10  smtp
+#   -o smtp_bind_address=127.0.0.3
+
+# Entrée Amavis
+smtp-amavis unix        -       -       n       -       4  smtp
+   -o smtp_data_done_timeout=1200
+   -o smtp_send_xforward_command=yes
+   -o disable_dns_lookups=yes
+   -o max_use=20
+   -o smtp_bind_address=127.0.0.1
+
+# Retour Amavis pour les mails a destination du LAN
+127.0.0.1:10025 inet n  -       n       -       -      smtpd
+   -o content_filter=
+   -o local_recipient_maps=
+   -o relay_recipient_maps=
+   -o smtpd_restriction_classes=
+   -o smtpd_delay_reject=no
+   -o mynetworks=127.0.0.0/8
+   -o smtpd_error_sleep_time=0
+   -o smtpd_soft_error_limit=1001
+   -o smtpd_hard_error_limit=1000
+   -o smtpd_client_connection_count_limit=0
+   -o smtpd_client_connection_rate_limit=0
+   -o receive_override_options=no_unknown_recipient_checks
+   -o smtpd_authorized_xforward_hosts=127.0.0.0/8
+   -o smtpd_client_restrictions=permit_mynetworks,reject
+   -o smtpd_helo_restrictions=
+   -o smtpd_sender_restrictions=
+   -o smtpd_recipient_restrictions=permit_mynetworks,reject
+   -o smtpd_data_restrictions=reject_unauth_pipelining
+   -o smtpd_end_of_data_restrictions=
+
+# Retour Amavis pour les mails a destination d'internet
+127.0.0.1:10026 inet n  -       n       -       -      smtpd
+   -o cleanup_service_name=headers-clean
+   -o content_filter=
+   -o local_recipient_maps=
+   -o relay_recipient_maps=
+   -o smtpd_restriction_classes=
+   -o smtpd_delay_reject=no
+   -o mynetworks=127.0.0.0/8
+   -o smtpd_error_sleep_time=0
+   -o smtpd_soft_error_limit=1001
+   -o smtpd_hard_error_limit=1000
+   -o smtpd_client_connection_count_limit=0
+   -o smtpd_client_connection_rate_limit=0
+   -o receive_override_options=no_unknown_recipient_checks
+   -o smtpd_authorized_xforward_hosts=127.0.0.0/8
+   -o smtpd_client_restrictions=permit_mynetworks,reject
+   -o smtpd_helo_restrictions=
+   -o smtpd_sender_restrictions=
+   -o smtpd_recipient_restrictions=permit_mynetworks,reject
+   -o smtpd_data_restrictions=reject_unauth_pipelining
+   -o smtpd_end_of_data_restrictions=
+

@@ -1,0 +1,18 @@
+Date: %d
+From: %f
+Subject: Notification: Action sur un message.
+To: [? %#T |undisclosed-recipients: ;|[<%T>|, ]]
+[? %#C |#|Cc: [<%C>|, ]]
+Message-ID: <VR%i@%h>
+
+Le message suivant a été supprimé.
+
+Date.............: %d
+Expéditeur.......: ([?%s|<>|[?%o|(?)|%s]])
+Destinataire.....: %T
+Sujet............: %j
+Pièce jointe.....: %F
+
+Le message a été supprimé car il ne répondait pas aux normes de securité : Attachement de pièce jointe non conforme (par exemple .exe, .bat,
+.com, ...)
+

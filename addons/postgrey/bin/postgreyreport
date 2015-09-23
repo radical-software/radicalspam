@@ -1,0 +1,743 @@
+#!/usr/bin/perl
+
+# postgreyreport by tbaker@bakerfl.org
+# bits and peices of code taken from postgrey 1.11 ( http://isg.ee.ethz.ch/tools/postgrey/ )
+
+package postgreyreport;
+use strict;
+use BerkeleyDB;
+use Getopt::Long 2.25 qw(:config posix_default no_ignore_case);
+use Net::Server::Daemonize qw( get_uid get_gid set_uid set_gid );
+use Pod::Usage;
+#use Net::RBLClient;
+my $VERSION='1.14.3 (20100321)';
+
+# used in maillog processing
+my $RE_revdns_ip   	= qr/ ([^\[\s]+)\[(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\]/;	# ptr[1.2.3.4]
+my $RE_reject 		= qr/reject: /;
+my $RE_triplet 		= qr/$RE_revdns_ip: 450 .+from=<([^>]+)> to=<([^>]+)>/;
+
+my $dns; my %dns_cache; 		# used for --check_sender 
+my $rbl = undef;			# Net::RBLClient object
+select((select(STDOUT), $| = 1)[0]); 	# Unbuffer standard output.
+
+# default options, override via command line
+my %opt = ( 	
+	user 			=> 'postgrey',
+	dbdir 			=> '/var/spool/postfix/postgrey',
+	delay			=> 300,
+	return_string		=> 'Greylisted',	# match on this string
+
+	check_sender		=> '',			# = mx,a,mx/24,a/24 # todo=spf - uses Net::DNS
+	show_tries		=> 0,			# number of greylist attempts within --delay
+	separate_by_subnet	=> '',			# if not blank output this string for every new /24
+	separate_by_ip	   	=> '',			# if not blank output this string for every new IP
+	single_line	   	=> 1,			# output everything on a single line? (grouping enabled if false )
+	tab			=> 0,			# use tabs as separators, not spaces (only in single line mode)
+	show_time		=> 0,			# show entry time in maillog
+	
+	skip_dnsbl		=> [],			# list of DNSBL servers to check and skip reporting for
+	skip_clients		=> [],			# files of clients to skip reporting	
+	skip_pool		=> 0,			# skip entries that appear to be a provider pool (last 2 ips in ptr)
+	match_clients		=> [], 			# files of ONLY clients to report on
+
+	v 			=> 0,			# verbose? used mainly for script debugging
+	debug_db		=> 0,			# output time() values from btree db
+	debug_re		=> '',			# but only for these hosts (separate by commas )
+	);
+
+# start here 
+sub main
+{
+	GetOptions(\%opt, 
+		'help|h', 'version', 'man',
+		'delay=s', 'user|u=s', 'dbdir=s', 
+		'debug_db', 'debug_re=s', 'v+',
+		'return_string|greylist-text=s',
+		'show_tries', 
+		'check_sender=s',
+		'separate_by_subnet=s', 'separate_by_ip=s',  
+		'single_line!', 'tab', 'show_time',
+		'skip_dnsbl=s@','skip_clients=s@', 'match_clients=s@', 'skip_pool', 
+		) or exit(1);
+	if($opt{help})     { pod2usage(1) }
+	if($opt{man})      { pod2usage(-exitstatus => 0, -verbose => 2) }
+	if ($opt{version})	{ print "postgreyreport $VERSION\n"; exit(0) }
+
+	if (scalar(@{$opt{skip_dnsbl}}) > 0) {
+		require Net::RBLClient;
+		$rbl = Net::RBLClient->new ( lists => $opt{skip_dnsbl} );
+	}
+
+
+	setup_debug();		 # display key/value pairs from db
+	read_client_files();
+	
+	postgrey_fatal_report(); # do the work
+}
+
+#######################################################
+# postgrey_fatal(): report on all fatal triplets
+#
+sub postgrey_fatal_report()
+{
+	umask 0077;							# mode 600
+	my %triplets;							# hash of all triplets we will look at
+	drop_priv($opt{user});						# change UID to 'postgrey'
+	
+	# convert --check_sender into hash: opt{do_checks}{VAL}
+	if ($opt{check_sender})	{ 
+		use Net::DNS; 
+		$dns = Net::DNS::Resolver->new;
+		$opt{check_sender} = lc $opt{check_sender};
+		foreach my $check ( split(/,/,$opt{check_sender}) ) {
+			$opt{do_checks}{$check}=1;	
+			print "Enabling Check: opt{do_checks}{$check} \n" if ($opt{v});
+		}
+	}
+
+	my $db = setup_dbm($opt{dbdir});				# connect to BerkeleyDB
+	my @greyfatal = find_and_sort_fatal( \%{$db}, \%triplets );	# read STDIN and sort the fatal triplets
+	
+	# foreach: loop through (sorted) fatal triplets and display to STDOUT
+	my ($last_ip,$last_subnet);					# define now
+
+	$opt{separate_by_ip} 		=~ s|\\n|\n|g;			# do it once before the for loop
+	$opt{separate_by_subnet} 	=~ s|\\n|\n|g;			# ""
+	
+	foreach my $key (@greyfatal)
+	{
+		my ($ip,$sender,$recipient) = split(/\//,$key);		# separate the triplet
+		
+		my $revdns = $triplets{$key}{revdns};			# we saved revdns during maillog parse, so we dont have to look it up
+
+		# --check_sender=mx,mx/24,a,a/24
+		# dns lookups from Net::DNS are cached and only performed once per sender's @domain
+		my $check_sender = '';
+		if 	( $opt{do_checks}{mx} 		and check_sender_mx( $sender,$ip,'mx') 		) {
+			$check_sender='MX';
+		} elsif	( $opt{do_checks}{'mx/24'} 	and check_sender_mx( $sender,$ip,'mx/24')	) {
+			$check_sender='MX/24';
+		} elsif	( $opt{do_checks}{a} 		and check_sender_a(  $sender,$ip,'a') 		) {
+			$check_sender='A';
+		} elsif	( $opt{do_checks}{'a/24'} 	and check_sender_a(  $sender,$ip,'a/24') 	) {
+			$check_sender='A/24';
+		}
+
+		# if separate_by_ip or separate_by_subnet display configured text
+		if ($last_subnet eq $triplets{$key}{subnet}) {
+			print "$opt{separate_by_ip}" 			if ( ($last_ip ne $ip) and $opt{separate_by_ip}) ;
+		} else  {
+			if 	( $opt{separate_by_subnet}	) {
+			 print    $opt{separate_by_subnet};
+			} elsif ( $opt{separate_by_ip} 		) { 
+			 print     $opt{separate_by_ip};
+			}
+		}
+
+		# display output on single line or multi-line
+		if ($opt{single_line})
+		{
+			if ($opt{tab}) {
+				printf "%s\t", $triplets{$key}{entrytime}	if($opt{show_time})	;
+				printf "%s\t", $triplets{$key}{counter}  	if($opt{show_tries})	;
+				printf "%s\t", $check_sender			if($opt{check_sender})	;
+				printf "%s\t", $ip							;
+				printf "%s\t", $revdns							;
+				printf "%s\t", $sender							;
+			} else {
+				printf "%s ", $triplets{$key}{entrytime}	if($opt{show_time})	;
+				printf "%s ", $triplets{$key}{counter}  	if($opt{show_tries})	;
+				printf "%5s ", $check_sender			if($opt{check_sender})	;
+				printf "%15s ", $ip							;
+				printf "%s ", $revdns							;
+				printf "%s ", $sender							;
+			}
+			printf "%s\n", $recipient;						;
+		} else 
+		{
+			### multi-line
+			
+			## only output PTR - IP if its a new IP (grouping)
+			printf "%-77s ", $revdns 			if($last_ip ne $ip)	;
+			printf "%15s"  , $ip  				if($last_ip ne $ip)	;
+			print  "\n"   					if($last_ip ne $ip)	;
+			
+			## always output the new pairs MX/A? (sender/recipient)
+			
+			# if sender was from MX or A of above IP			
+			printf "%5s "  , $check_sender			if($opt{check_sender})	;
+			printf "      ", $check_sender			if(! $opt{check_sender});
+			# tries or blank space
+			printf " %2s ", $triplets{$key}{counter}  	if($opt{show_tries})	;
+			print  "    " 					if(! $opt{show_tries})	;
+			
+			# sender - recipient
+			printf " %40s ", $sender						;
+			printf " %40s ", $recipient						;
+			print  "\n"								;
+			
+		}
+		($last_ip, $last_subnet) = ($ip, $triplets{$key}{subnet}); # save for next iteration
+	}
+	
+}
+
+#####################################################################
+# find_and_sort_fatal( \%db, \%triplets )
+#  read STDIN (maillog) and remember any 4xx greylisted log entries
+# return array of fatal triplets (ip/sender/recipient) sorted by ip
+sub find_and_sort_fatal
+{
+	my ($db, $triplets) = @_;
+	
+	# while(<>): STDIN is maillog.0, looking at reject: 4xx greylist entries and remembering all triplets
+	MAILLOG: while (<>)
+	{
+		next unless (/$RE_reject/o);				# only look at reject: lines
+		next unless (/$opt{return_string}/o);			# only look at greylisted lines
+		next unless (/$RE_triplet/o);				# extract the triplet
+		my ($revdns,$ipaddr,$sender,$recipient) = ($1,$2,$3,$4);
+		my @ip = split(/\./, $ipaddr);
+		$sender      = do_sender_substitutions($sender);		
+		my ($subnet) = do_client_substitutions($ipaddr,$revdns); # 1.2.3.0
+		my $key    = lc "$ipaddr/$sender/$recipient";		# postgrey key
+		my $subkey = lc "$subnet/$sender/$recipient";		# subnet key 1.2.3.0/sender/recipient
+
+		# if we are wanting to dump first,last out of the db do it before we determine if its fatal
+		if ( is_debug_host($revdns) )
+		{
+			foreach my $testkey ( @{[$key,$subkey]} )
+			{
+				my ($tfirst, $tlast) = split(/,/,$db->{$testkey});
+				my $tdiff = $tlast - $tfirst;
+				print "$testkey : $db->{$testkey} = " .$tdiff . "s \n";	
+			}
+		}
+
+		# if --match_clients was specified on command line then move on to the next line unless a match is found
+		if ( scalar(@{$opt{match_clients}}) > 0 ) {
+			next unless (	find_in_array($ipaddr, $opt{MATCH_CLIENT_IPS}) or 
+					find_in_array($revdns, $opt{MATCH_CLIENT_PTR})     );
+		}
+
+		# if --skip_clients was specified on command line, skip to next line if a match is found
+		next if (	find_in_array($ipaddr, $opt{SKIP_CLIENT_IPS}) or
+				find_in_array($revdns, $opt{SKIP_CLIENT_PTR})	  );			
+
+		# if --skip_pool then if last 2 ips are in ptr skip to next line
+		next if ( $opt{skip_pool} and defined $ip[3] and $revdns =~ /$ip[2]/ and $revdns =~ /$ip[3]/ );
+		
+		# check the db, proceed if the triplet was fatal
+		next MAILLOG unless is_fatal_triplet($db, $key, $subkey);	
+
+		# if --skip_dnsbl then do RBL lookups (slow!)
+		if ( defined $rbl ) {
+			$rbl->lookup($ipaddr);
+			my @listed = $rbl->listed_by;
+			next if ( scalar(@listed) > 0 );
+			
+		}
+		
+		# we made it past all the filtering checks, remember the triplet as fatal
+
+		$triplets->{$key}{counter}++;				# increase counter for this triplet
+		$triplets->{$key}{revdns}=$revdns;			# save its ptr for later use
+		$triplets->{$key}{ipaddr}=$ipaddr;			# save IP in easy to access form
+		$triplets->{$key}{subnet}=$subnet;			# save subnet in easy to access form
+		$triplets->{$key}{subkey}=$subkey;			# save key in subnet form
+		$triplets->{$key}{entrytime}=substr($_,0,15);
+		
+	}
+
+	die "Debugging DB active, report shutdown" if ($opt{debug_db}); # don't do anything other than spit out key pairs and stop
+
+	my @greyfatal = keys %{ $triplets }; 				# create an array containing all triplets in form: ip/sender/recipient
+	# sort fatal triplets by IP address
+	@greyfatal = sort {
+		    pack('C4' => $a =~
+		      /(\d+)\.(\d+)\.(\d+)\.(\d+)/)
+		    cmp
+		    pack('C4' => $b =~
+		      /(\d+)\.(\d+)\.(\d+)\.(\d+)/)
+		  } @greyfatal;
+		  
+	return @greyfatal;			
+	
+}
+
+sub find_in_array($$)
+{
+	my ($var, $patterns) = @_;
+	for my $w (@{$patterns}) {
+		return 1 if $var =~ $w;	
+	}
+	return 0;
+}
+
+
+sub is_fatal_triplet($$$)
+{
+	my ($db, $key, $subkey) = @_;
+	
+	my ($lapsed_ip, $lapsed_subnet) = (undef,undef);
+	
+	# try lookup by key
+	if ( $db->{$key} =~ /,/ )
+	{
+		my ($tfirst,$tlast) = split(/,/,$db->{$key});		# time_first_seen,time_last_seen
+		$lapsed_ip = $tlast - $tfirst;				# difference is time lapsed
+	}
+	
+	# try subnet lookup	
+	if ( $db->{$subkey} =~ /,/ )
+	{
+		my ($tfirst,$tlast) = split(/,/,$db->{$subkey});		# time_first_seen,time_last_seen
+		$lapsed_subnet = $tlast - $tfirst;
+	}
+	
+	if (   
+	      ( defined $lapsed_ip or defined $lapsed_subnet )  
+		and
+	    (!( ($lapsed_ip >= $opt{delay} ) or ($lapsed_subnet >= $opt{delay}) ) )   
+	   )    
+	{
+		#push (@greyfatal, $key); 	# if lapsed time less than --delay, then it was a fatal triplet
+		return 1;
+	} elsif (( ! defined $lapsed_ip ) and ( ! defined $lapsed_subnet ))
+	{
+		#push (@greyfatal, $key); 	# if neither is found in the db it must have been removed.
+		return 1;
+	}
+	return 0;
+}	
+
+
+###########################################################################
+# check_sender_mx(sender, ip, subnet) # subnet='' or '/24'
+# return true if ip is in MX list for sender domain (or /24 if specified)
+# enable via --check_sender=mx or --check_sender=mx,mx/24
+sub check_sender_mx($$$)
+{
+	my ($sender, $ip, $subnet) = @_;
+	my ($user, $hostname) 		 = split(/\@/,$sender);
+	my @iplist;
+
+	if ( $dns_cache{$hostname}{mx} )
+	{
+		@iplist = @{$dns_cache{$hostname}{mx}};	# use the cache for MX records
+	} else 
+	{
+		my @mxr = mx($dns, $hostname);		# no cache existed, call out to Net::DNS
+		# mx records
+		if ($#mxr >= 0) 
+		{ 
+			foreach my $mxrr (@mxr) 
+			{
+				# print "MX for $hostname: ". $mxrr->exchange . "\n";
+				my $ipquery = $dns->search($mxrr->exchange);
+				if ($ipquery) 
+				{
+					foreach my $iprr ($ipquery->answer) 
+					{
+						next unless ($iprr->type eq "A");
+						# print " IP=" . $iprr->address . "\n";
+						push (@iplist, $iprr->address);
+		
+					}
+				}
+			}
+		}
+		if ( $#iplist < 0 ) { push (@iplist, '0.0.0.0'); }  # cache ip of all zero's so we dont keep calling net::dns if nothing is returned
+		$dns_cache{$hostname}{mx} = [ @iplist ]; # cache the array IPs of the MX records into an hash location.
+	}
+	$subnet =~ s/^mx//i;
+	return check_sender_ip_vs_list($ip, $subnet, \@iplist);
+}
+
+###########################################################################
+# check_sender_a(sender, ip, subnet) # subnet='' or '/24'
+# return true if ip is in A record for sender domain (or /24 if specified)
+# enable via --check_sender=a or --check_sender=a,24
+sub check_sender_a($$$)
+{
+	my ($sender, $ip, $subnet) = @_;
+	my ($user, $hostname) 		 = split(/\@/,$sender);
+	my @iplist;
+
+	if ( $dns_cache{$hostname}{a} )
+	{
+		@iplist = @{$dns_cache{$hostname}{a}};	# use the cache'd A records
+	} else 
+	{
+		my $ipquery = $dns->search($hostname);	# no cache existed, call out to Net::DNS
+		if ($ipquery) 
+		{
+			foreach my $iprr ($ipquery->answer) 
+			{
+				next unless ($iprr->type eq "A");
+				# print " IP=" . $iprr->address . "\n";
+				push (@iplist, $iprr->address);
+
+			}
+		}
+		if ( $#iplist < 0 ) { push (@iplist, '0.0.0.0'); }  # cache ip of all zero's so we dont keep calling net::dns if nothing is returned
+		$dns_cache{$hostname}{a} = [ @iplist ]; # cache the array IPs of the A records into an hash location.
+	}
+	$subnet =~ s/^a//i;
+	return check_sender_ip_vs_list($ip, $subnet, \@iplist);
+}
+###################################################
+# used by check_sender_mx and check_sender_a
+# return true if IP is in list
+# if /24 then return true if first 3 octets match
+sub check_sender_ip_vs_list($$$)
+{
+	my ($client_ip, $match, $iplist) = @_;
+	foreach my $ipaddr ( @{$iplist} )
+	{
+		return 1 if ($client_ip eq $ipaddr);
+		return 0 if (! $match eq '/24');
+		
+		$client_ip =~ /^(\d{1,3}\.\d{1,3}\.\d{1,3}\.)/;
+		my $client_classaddr = $1;
+		$ipaddr =~ /^(\d{1,3}\.\d{1,3}\.\d{1,3}\.)/;
+		my $ipaddr_classaddr = $1;
+
+		return 1 if ( $client_classaddr eq $ipaddr_classaddr );
+	}	
+	return 0
+}
+
+
+#########################################
+# drop_priv(username)
+# code from Net::Server
+sub drop_priv
+{
+	my ($user) = @_;
+	### drop privileges
+	eval{
+		if( $user ne $> ){
+			# print "Setting uid to \"$user\"\n";
+		set_uid( $user );
+		}
+	};
+	if( $@ ){
+		if( $> == 0 ){
+			die $@;
+		} elsif( $< == 0){
+			# print "NOTICE: Effective UID changed, but Real UID is 0: $@\n";
+		}else{
+			print $@."\n";
+		}
+	}
+}
+
+###########################################3
+# setup_dbm(dbdir)
+# connect to BerkeleyDB *READ_ONLY*, return reference to db hash
+sub setup_dbm
+{
+	my ($dbdir) = @_;
+	my %db;	
+	
+
+	    tie(%db, 'BerkeleyDB::Btree',
+	        -Filename => "$dbdir/postgrey.db",
+	        -Flags    => DB_RDONLY,
+	    ) or die "ERROR: can't find database $dbdir/postgrey.db: $!\n";
+	    
+	return \%db;
+}
+	
+
+# from postgrey 1.14 http://isg.ee.ethz.ch/tools/postgrey/    
+sub do_sender_substitutions($)
+{
+    my ($addr) = @_;
+
+    my ($user, $domain) = split(/@/, $addr, 2);
+    defined $domain or return $addr;
+    # strip extension, used sometimes for mailing-list VERP
+    $user =~ s/\+.*//;
+    # replace numbers in VERP addresses with '#' so that
+    # we don't create a new key for each mail
+    $user =~ s/\b\d+\b/#/g;
+    return "$user\@$domain";
+}
+
+# from postgrey 1.14 http://isg.ee.ethz.ch/tools/postgrey/    
+sub do_client_substitutions($$)
+{
+    	my ($ip, $revdns) = @_;
+
+	# --lookup-by-subnet:
+
+    return ($ip, undef) if $revdns eq 'unknown';
+    my @ip=split(/\./, $ip);
+    return ($ip, undef) unless defined $ip[3];
+    # skip if it contains the last two IP numbers in the hostname
+    # (we assume it is a pool of dialup addresses of a provider)
+    return ($ip, undef) if $revdns =~ /$ip[2]/ and $revdns =~ /$ip[3]/;
+    return (join('.', @ip[0..2], '0'), $ip[3]);
+
+}
+
+
+## used code from postgrey for read_client_whitelists() to import client files
+sub read_client_files()
+{
+	my @skip_client_ips;
+	my @skip_client_ptr;
+	my @match_client_ips;
+	my @match_client_ptr;
+	
+	for my $f (@{$opt{'skip_clients'}}) {
+          if(open(CLIENTS, $f)) {
+            while(<CLIENTS>) {
+                s/^\s+//; s/\s+$//; next if $_ eq '' or /^#/;
+                if(/^\/(\S+)\/$/) {
+                    # regular expression
+                    push @skip_client_ptr, qr{$1}i;
+                }
+                elsif(/^\d{1,3}(?:\.\d{1,3}){0,3}$/) {
+                    # IP address or part of it
+                    push @skip_client_ips, qr{^$_};
+                }
+                # note: we had ^[^\s\/]+$ but it triggers a bug in perl 5.8.0
+                elsif(/^\S+$/) {
+                    push @skip_client_ptr, qr{\Q$_\E$}i;
+                }
+                else {
+                    warn "WARNING: $f line $.: doesn't look like a hostname\n";
+                }
+            }
+          }  
+	}
+	$opt{SKIP_CLIENT_PTR} = \@skip_client_ptr;
+	$opt{SKIP_CLIENT_IPS} = \@skip_client_ips;
+
+	for my $f (@{$opt{'match_clients'}}) {
+          if(open(CLIENTS, $f)) {
+            while(<CLIENTS>) {
+                s/^\s+//; s/\s+$//; next if $_ eq '' or /^#/;
+                if(/^\/(\S+)\/$/) {
+                    # regular expression
+                    push @match_client_ptr, qr{$1}i;
+                }
+                elsif(/^\d{1,3}(?:\.\d{1,3}){0,3}$/) {
+                    # IP address or part of it
+                    push @match_client_ips, qr{^$_};
+                }
+                # note: we had ^[^\s\/]+$ but it triggers a bug in perl 5.8.0
+                elsif(/^\S+$/) {
+                    push @match_client_ptr, qr{\Q$_\E$}i;
+                }
+                else {
+                    warn "WARNING: $f line $.: doesn't look like a hostname\n";
+                }
+            }
+          }  
+	}
+	$opt{MATCH_CLIENT_PTR} = \@match_client_ptr;
+	$opt{MATCH_CLIENT_IPS} = \@match_client_ips;
+	
+	
+}
+
+
+sub setup_debug()
+{
+	if ($opt{debug_db} or $opt{search_db})
+	{
+		die "\nDebugging_DB Activated, but no matching RE's defined. use --debug_re also! \n  " if (! $opt{debug_re} );
+		print "\nDebugging_DB Active, Displaying hosting matching REs: ";
+		foreach my $RE ( split(/,/,$opt{debug_re}) )
+		{
+        		print "$RE ; ";
+        		push ( @{ $opt{debug_RE} }, qr/$RE/i );
+		}
+		print "\n\n";
+	}	
+	
+}
+
+sub is_debug_host($)
+{
+	my ($host) = @_;
+	foreach my $RE ( @{$opt{debug_RE}} )
+	{
+		return 1 if ($host =~ /$RE/);
+	}	
+	return 0;
+}
+
+
+main();
+exit 0;
+
+
+__END__
+
+
+
+=head1 NAME
+
+postgreyreport - Fatal report for Postfix Greylisting Policy Server
+
+=head1 SYNOPSIS
+
+B<postgreyreport> [I<options>...]
+
+ -h, --help                   display this help and exit
+     --version		      display version and exit
+
+     --user=USER              run as USER (default: postgrey)
+     --dbdir=PATH             find db files in PATH (default: /var/spool/postfix/postgrey)
+     --delay=N                report triplets that did not try again after N seconds (default: 300)
+     --greylist-text=TXT      text to match on for greylist maillog lines
+
+     --skip_pool	      Skip report for 'subscriber pools' ( last 2 octets of IP found in PTR name )
+     --skip_dnsbl=RBL	      RBL server to query and skip reporting for any listed hosts (SLOW!!)
+     --skip_clients=FILE      PTR or IP or REGEXP of clients to skip in report        
+     --match_clients=FILE     *ONLY* report if fatal *AND* PTR/IP of client matches
+     
+     --show_tries	      display the number of attempts failed triplets made in first column
+     --show_time	      show entry time in maillog (single line only)
+     --tab		      use tabs as separators for easy cut(1)ting
+
+     --nosingle_line	      display sender/recipients grouped by ptr - ip
+     --separate_by_subnet=TXT display TXT for every new /24 (ex: "=================\n" )
+     --separate_by_ip=TXT     display TXT for every new IP  (ex: "\n")
+     --check_sender=LIST      one or more of: mx,mx/24,a,a/24
+                              does DNS/A lookups for sender @domain and compares sending IP
+                              if match displays "MX" "A" or "MX/24" or "A/24" depending on LIST
+  
+   Note that --(skip|match)_clients can be specified multiple times and there are no default files.
+   Same rules apply as postgrey's --whitelist-clients, see postgrey doc for more info.
+
+   --skip_dnsbl can also be specified multiple times to query multiple DNSBL servers.
+
+=head1 DESCRIPTION
+
+postgreyreport opens postgrey.db as read-only; reads a maillog via STDIN, 
+extracts the triplets for any Greylisted lines and looks them up in postgrey.db. 
+if the difference in first and last time seen is less than --delay=N then the 
+triplet is considered fatal and displayed to STDOUT
+
+The report sorts by client IP address 
+
+
+=head2 Note:
+
+unless you are using --lookup_by_subnet or excluding all known MTA pools you will likely have 
+false fatal reports for "BigISPs". A message that was tried from every IP in SMTP pool before making it
+through will show up in the report for all of the attempted source IPs
+
+
+=head2 USAGE
+
+It is best to run postgreyreport against a maillog that is at least several hours old (yesterdays?) 
+( you be the judge on how old is acceptable ). if you run the report against a live maillog you are
+not giving legit MTA's enough time to try again and you will have lots of inaccurate information.
+
+=over
+
+=item * Ex usage:
+
+	zcat /var/log/maillog.0.gz | ./postgreyreport [options] > postgreyreport.log
+
+	or
+	
+	zcat /var/log/maillog.0.gz | \
+	./postgreyreport --nosingle_line --check_sender=mx,a \
+	--separate_by_subnet=":==================\n"
+	# 94 "=" total, some were omitted for clarity
+
+=item * Ex Output: ( POD wrapping will mess this up, view source )
+
+ :============================================================================================
+ unknown                 4.29.43.31
+                    marissa_mcclendonuu@abit.com.tw                      user1@recipient1.com 
+                            jake_meyerdt@ali.com.tw                      user2@recipient1.com 
+                        jenny_banks_sh@translate.ru                      user1@recipient2.com 
+                              rvazquezpo@ali.com.tw                      user3@recipient1.com 
+                                 aep@notimexico.com                      user2@recipient1.com  
+                    brittneystanley_ei@cetra.org.tw                      user2@recipient1.com  
+                            brendasheehan_cw@lib.ru                      user2@recipient1.com  
+ :============================================================================================
+ lsanca1-ar5-127-189.biz.dsl.gtei.net      4.33.127.189
+    A      fokkensr@lsanca1-ar5-127-189.biz.dsl.gtei.net                 user2@recipient1.com 
+                       
+                       cyxlfrfwciercu@publicist.com                      user3@recipient4.com  
+ :============================================================================================
+ smtpout.mac.com       17.250.248.83
+                             do_not_reply@apple.com                      user4@recipient5.com 
+
+ smtpout.mac.com       17.250.248.88
+   MX                             legituser@mac.com                      user6@recipient7.com 
+ :============================================================================================
+
+=back
+
+=head1 HISTORY
+
+
+B<1.14.3  20100321>
+
+=over 4
+
+  Some additions, Leonard den Ottolander <leonard.den.ottolander.nl>
+  New option: --tab   Use tabs as separator in single line mode
+  New option: --show_time   Show entry time in maillog in single line mode
+
+=back
+
+B<1.14.2  20040715>
+
+=over 4
+
+  BUGFIX: (automatic) lookup-by-subnet support was broken, fixed.
+  BUGFIX: corrected a few spelling errors
+  new Option: --skip_pool   Skip report for 'subscriber pools' 
+
+=back
+
+B<1.14.1  20040712>
+
+=over 4
+
+  Changed --return-string to --greylist-text to match postgrey
+  new Option: --skip_clients=FILE
+  new Option: --match_clients=FILE
+  new Option: --skip_dnsbl=RBL.DNS.NAME
+  All 3 of the new options can be specified multiple times.
+  Updated do_*_subsititions again to match postgrey
+
+=back
+
+B<1.11.1 20040701>
+
+=over 4
+
+  missing keys from DB are considered fatal triplets and included in report
+  Changed --delay testing from "greater than" to "greater than or equal to"
+  Fixed --help and --man switches
+  Removed setuid Notice
+
+=back
+
+B<1.6.4  20040618>
+
+=over 4
+
+  Initial Public Version (postgrey/contrib)
+
+=back
+
+=head1 AUTHOR
+
+S<Tom Baker E<lt>tbaker@bakerfl.orgE<gt>>
+
+=cut

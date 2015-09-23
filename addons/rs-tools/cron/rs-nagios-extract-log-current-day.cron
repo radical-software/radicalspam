@@ -1,0 +1,5 @@
+# Pour le placer dans /etc/cron.d :
+# ln -sf /var/rs/addons/rs-tools/cron/rs-nagios-extract-log-current-day.cron /etc/cron.d/rs-nagios-extract-log-current-day
+
+# Mise à jour tous les 5 minutes
+*/5 * * * * root nice -n 19 su - -c "/var/rs/addons/nagios/bin/extract-log-current-day.sh >/dev/null 2>/dev/null"

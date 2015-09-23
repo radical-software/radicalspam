@@ -1,0 +1,5 @@
+# Dans /etc/cron.d :
+# ln -sf /var/rs/addons/rs-tools/cron/rs-clamav-update.cron /etc/cron.d/rs-clamav-update
+
+# Mise à jour toutes les 2 heures
+0 */2 * * * root su - -c "/etc/init.d/radicalspam update_clamav" >/dev/null 2>/dev/null

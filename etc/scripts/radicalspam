@@ -1,0 +1,1136 @@
+#!/bin/bash
+
+# *********************************************************
+# Script de gestion de RadicalSpam
+# Version 2.0
+# *********************************************************
+
+RETVAL=0
+
+export LANGUAGE="en_US"
+export LC_ALL="C"
+export LANG="en_US"
+
+MSG_ERROR=""
+
+# ------------------------------------------------------------------
+# Permet d'utiliser ce script a l'extérieur et à l'intérieur du chroot
+# ------------------------------------------------------------------
+
+if [ -e /var/rs ]; then
+
+    if [ ! -f /var/rs/etc/scripts/common.sh ]; then
+       echo "RadicalSpam est incomplet ou n'est pas installé au bon endroit !"
+       exit 1
+    fi
+
+    if [ ! -f /var/rs/etc/radicalspam.conf ]; then
+       echo "Le fichier /var/rs/etc/radicalspam.conf est introuvable !"
+       exit 1
+    fi
+ 
+    . /var/rs/etc/scripts/common.sh
+    . /var/rs/etc/radicalspam.conf
+
+else
+
+    if [ ! -f /etc/scripts/common.sh ]; then
+       echo "RadicalSpam est incomplet ou n'est pas installé au bon endroit !"
+       exit 1
+    fi
+
+    if [ ! -f /etc/radicalspam.conf ]; then
+       echo "Le fichier /etc/radicalspam.conf est introuvable !"
+       exit 1
+    fi
+
+    . /etc/scripts/common.sh
+    . /etc/radicalspam.conf
+fi
+
+NULL=/dev/null
+
+#DEBUG DEV :
+#echo "RS_BASE : $RS_BASE"
+#echo "LOCAL_CHROOT : $LOCAL_CHROOT"
+#echo "PATH : $PATH"
+#echo "OPT_DIR : $OPT_DIR"
+
+# ------------------------------------------------------------------
+# Vérification de la configuration de syslog :
+# ------------------------------------------------------------------
+if [ ! -S $RS_BASE/dev/log ]; then
+   red "Vous devez configurer syslog avant de lancer RadicalSpam !"
+   exit 1
+fi
+
+# ------------------------------------------------------------------
+# Vérification du compte utilisé :
+# ------------------------------------------------------------------
+if [ ! testroot ]; then
+   red "Vous devez être en compte root (id 0) pour lancer RadicalSpam !"
+   exit 1
+fi
+
+# ------------------------------------------------------------------
+# Gestion du mode debug qui renvoit $NULL vers un fichier si actif
+# ------------------------------------------------------------------
+opt_display DEBUG && NULL=$RS_BASE/var/log/radicalspam-debug.log
+
+# ------------------------------------------------------------------
+# Montage du FS /var/rs/proc :
+# ------------------------------------------------------------------
+if [ ! -d $RS_BASE/proc/$PPID ]; then
+   $MOUNT -t proc none $RS_BASE/proc 2>>$NULL 1>&2
+   if [ ! -d $RS_BASE/proc/$PPID ]; then
+      red "Le montage du FS $RS_BASE/proc a échoué"
+      exit 1
+   fi
+fi
+
+# ------------------------------------------------------------------
+# Vérification et mise à jour éventuel du HOSTNAME dans /var/rs/etc/hosts
+# ------------------------------------------------------------------
+grep $MY_HOSTNAME $RS_BASE/etc/hosts 2>/dev/null 1>&2
+if [ $? -eq 1 ]; then
+   MY_HOSTNAME_LOCAL="`echo $MY_HOSTNAME | cut -d '.' -f1`"
+   sed -i "s/^127.0.0.1.*/127.0.0.1 $MY_HOSTNAME $MY_HOSTNAME_LOCAL/" $RS_BASE/etc/hosts
+fi
+export MY_HOSTNAME
+
+MSG=""
+
+# ------------------------------------------------------------------
+# Vérification que DNSMASQ et BIND ne soit pas enable en même temps
+# ------------------------------------------------------------------
+is_enable BIND
+RET_BIND=$?
+is_enable DNSMASQ
+RET_DNSMASQ=$?
+
+if [ $RET_BIND -eq 0 ] | [ $RET_DNSMASQ -eq 0 ]; then
+   if [ $RET_BIND == $RET_DNSMASQ ]; then
+      MSG_ERROR="Bind et Dnsmasq ne doivent pas être activés en même temps"
+   fi
+fi
+
+# ************** AMAVIS ************** #
+
+AMAVIS_CMD=/addons/amavis/bin/amavisd
+AMAVIS_PID=$RS_BASE/addons/amavis/var/amavis/amavisd.pid
+AMAVIS_CONFIG=/addons/amavis/etc/amavisd.conf
+
+isopen_amavis() {
+   is_open $AMAVIS_PID amavisd
+   return $?
+}
+
+start_amavis() {
+   isopen_amavis
+   RETVAL=$?
+   if [ "$RETVAL" = "0" ]; then
+      $LOCAL_CHROOT $RS_BASE $AMAVIS_CMD -c $AMAVIS_CONFIG start 2>>$NULL 1>&2
+      RETVAL=$?
+      return $RETVAL
+   else
+      MSG="Amavis already running."
+   fi
+   return 1
+}
+
+stop_amavis() {
+   isopen_amavis
+   RETVAL=$?
+   if [ "$RETVAL" = "1" ]; then
+      $LOCAL_CHROOT $RS_BASE $AMAVIS_CMD -c $AMAVIS_CONFIG stop 2>>$NULL 1>&2
+      RETVAL=$?
+      $RM -f /addons/amavis/var/amavis/amavisd*.lock
+      return $RETVAL
+   else
+      MSG="Amavis is not running."     
+   fi
+   return 1
+}
+
+reload_amavis() {
+   isopen_amavis
+   RETVAL=$?
+   if [ "$RETVAL" = "1" ]; then
+      $LOCAL_CHROOT $RS_BASE $AMAVIS_CMD -c $AMAVIS_CONFIG reload 2>>$NULL 1>&2
+      RETVAL=$?
+      return $RETVAL
+   else
+      MSG="Amavis is not running."
+   fi
+   return 1
+}
+
+# ************** CLAMAV ************** #
+
+CLAMAV_CMD=/addons/clamav/bin/clamd
+CLAMAV_PID=$RS_BASE/addons/clamav/var/clamd.pid
+CLAMAV_CONFIG=/addons/clamav/etc/clamd.conf
+
+isopen_clamav() {
+   is_open $CLAMAV_PID clamd
+   return $?
+}
+
+start_clamav() {
+   isopen_clamav
+   RETVAL=$?
+   if [ "$RETVAL" = "0" ]; then
+      $LOCAL_CHROOT $RS_BASE $CLAMAV_CMD --config-file=$CLAMAV_CONFIG 2>>$NULL 1>&2
+      RETVAL=$?
+      return $RETVAL
+   else
+      MSG="Clamav already running."
+   fi
+   return 1
+}
+
+stop_clamav() {
+   isopen_clamav
+   RETVAL=$?
+   if [ "$RETVAL" = "1" ]; then
+      $KILL -TERM `$CAT $CLAMAV_PID`
+      RETVAL=$?
+      return $RETVAL
+   else
+      MSG="Clamav is not running."
+   fi
+   return 1
+}
+
+reload_clamav() {
+   isopen_clamav
+   RETVAL=$?
+   if [ "$RETVAL" = "1" ]; then
+      $KILL -HUP `$CAT $CLAMAV_PID` 2>>$NULL 1>&2
+      RETVAL=$?
+      return $RETVAL
+   else
+      MSG="Clamav is not running."
+   fi
+   return 1
+}
+
+clamav_update() {
+
+   $LOCAL_CHROOT $RS_BASE /addons/clamav/bin/freshclam -v --config-file=/addons/clamav/etc/freshclam.conf 2>>$NULL 1>&2
+   RETVAL=$?
+
+   case "$RETVAL" in
+      "0")
+         # Recharcher clamd
+         isopen_clamav
+         if [ "$?" = "1" ]; then
+            reload_clamav
+            RETVAL=$?
+         fi
+         # TODO: prévoir si problème lors du rechargement !!!
+         return $RETVAL
+         ;;
+      "1")
+         # Rien a faire, le système est à jour
+         return 0
+         ;;
+      *)
+         # Autre code = Erreur
+         return $RETVAL
+   esac
+}
+
+# Affiche la configuration actuelle
+clamav_view_conf() {
+   $LOCAL_CHROOT $RS_BASE /addons/clamav/bin/clamconf -n
+}
+
+# ************** POSTGREY ************ #
+
+# Options Postgrey :
+
+POSTGREY_CMD=/addons/postgrey/bin/postgrey
+POSTGREY_LOCAL_PID=/addons/postgrey/var/postgrey.pid
+POSTGREY_PID=$RS_BASE/addons/postgrey/var/postgrey.pid
+POSTGREY_USER=postgrey
+POSTGREY_GROUP=postgrey
+POSTGREY_DB_DIR=/addons/postgrey/var/spool
+POSTGREY_TEXT_ARG="--greylist-text=${POSTGREY_TEXT}"
+
+POSTGREY_OPTIONS="--user=$POSTGREY_USER --group=$POSTGREY_GROUP --inet=$POSTGREY_IP:$POSTGREY_PORT --daemonize --pidfile=$POSTGREY_LOCAL_PID --dbdir=$POSTGREY_DB_DIR --whitelist-clients=$POSTGREY_W_CLIENTS --whitelist-recipients=$POSTGREY_W_RECIPIENTS --delay=$POSTGREY_DELAY --max-age=$POSTGREY_MAX_AGE --retry-window=$POSTGREY_RETRY_WINDOW $POSTGREY_LOOKUP --auto-whitelist-clients=$POSTGREY_AUTO_WL_CLIENT --verbose"
+
+isopen_postgrey() {
+   is_open $POSTGREY_PID postgrey
+   return $?
+}
+
+start_postgrey() {
+   isopen_postgrey
+   RETVAL=$?
+   if [ "$RETVAL" = "0" ]; then
+      $LOCAL_CHROOT $RS_BASE $POSTGREY_CMD $POSTGREY_OPTIONS "${POSTGREY_TEXT_ARG}" 2>>$NULL 1>&2
+      RETVAL=$?
+      return $RETVAL
+   else
+      MSG="Postgrey already running."
+   fi
+   return 1
+}
+
+stop_postgrey() {
+   isopen_postgrey
+   RETVAL=$?
+   if [ "$RETVAL" = "1" ]; then
+      $KILL -TERM `$CAT $POSTGREY_PID`
+      RETVAL=$?
+      return $RETVAL
+   else
+      MSG="Postgrey is not running."
+   fi
+   return 1
+}
+
+reload_postgrey() {
+   isopen_postgrey
+   RETVAL=$?
+   if [ "$RETVAL" = "1" ]; then
+      $KILL -HUP `$CAT $POSTGREY_PID`
+      RETVAL=$?
+      return $RETVAL
+   else
+      MSG="Postgrey is not running."
+   fi
+   return 1
+}
+
+# ************** POSTFIX ************* #
+
+POSTFIX_CMD="${ADDON_POSTFIX}/sbin/postfix"
+POSTFIX_PID=${RS_BASE}${ADDON_POSTFIX}/var/spool/pid/master.pid
+
+isopen_postfix() {
+   is_open $POSTFIX_PID master
+   return $?
+}
+
+start_postfix() {
+
+   if [ ! -f ${RS_BASE}${ADDON_POSTFIX}/etc/local-transport.db ]; then
+      MSG="Postfix not init. Please use radicalspam postfix_refresh for init Postfix."
+      return 1
+   fi
+
+   isopen_postfix
+   RETVAL=$?
+   if [ "$RETVAL" = "0" ]; then
+      $LOCAL_CHROOT $RS_BASE $POSTFIX_CMD start 2>>$NULL 1>&2
+      RETVAL=$?
+      return $RETVAL
+   else
+      MSG="Postfix already running."
+   fi
+   return 1
+}
+
+stop_postfix() {
+   isopen_postfix
+   RETVAL=$?
+   if [ "$RETVAL" = "1" ]; then
+      $LOCAL_CHROOT $RS_BASE $POSTFIX_CMD stop 2>>$NULL 1>&2
+      RETVAL=$?
+      return $RETVAL
+   else
+      MSG="Postfix is not running."
+   fi
+   return 1
+}
+
+reload_postfix() {
+   isopen_postfix
+   RETVAL=$?
+   if [ "$RETVAL" = "1" ]; then
+      $LOCAL_CHROOT $RS_BASE $POSTFIX_CMD reload 2>>$NULL 1>&2
+      RETVAL=$?
+      return $RETVAL
+   else
+      MSG="Postfix is not running."
+   fi
+   return 1
+}
+
+postfix_flush() {
+   isopen_postfix
+   RETVAL=$?
+   if [ "$RETVAL" = "1" ]; then
+      $LOCAL_CHROOT $RS_BASE $POSTFIX_CMD flush 2>>$NULL 1>&2
+      RETVAL=$?
+      return $RETVAL
+   else
+      MSG="Postfix is not running."
+   fi
+   return 1
+}
+
+postfix_refresh() {
+   $LOCAL_CHROOT $RS_BASE /addons/postfix/etc/config-postfix.sh 2>>$NULL 1>&2
+   RET=$?
+
+   isopen_postfix
+
+   RETVAL=$?
+   if [ "$RETVAL" = "1" ]; then
+      reload_postfix
+   fi
+
+   return $RET
+}
+
+# ************** BIND **************** #
+
+BIND_RNDC_CMD=/addons/bind/bin/rndc
+BIND_CMD=/addons/bind/bin/named
+BIND_CONFIG=/addons/bind/etc/named.conf
+BIND_PID=$RS_BASE/addons/bind/var/run/named.pid
+BIND_USER=named
+
+isopen_bind() {
+   is_open $BIND_PID named
+   return $?
+}
+
+start_bind() {
+   isopen_bind
+   RETVAL=$?
+   if [ "$RETVAL" = "0" ]; then
+      $LOCAL_CHROOT $RS_BASE $BIND_CMD -u $BIND_USER -c $BIND_CONFIG 2>>$NULL 1>&2
+      RETVAL=$?
+      return $RETVAL
+   else
+      MSG="Bind already running."
+   fi
+   return 1
+}
+
+stop_bind() {
+   isopen_bind
+   RETVAL=$?
+   if [ "$RETVAL" = "1" ]; then
+      $LOCAL_CHROOT $RS_BASE $BIND_RNDC_CMD stop -p 2>>$NULL 1>&2
+      RETVAL=$?
+      return $RETVAL
+   else
+      MSG="Bind is not running."
+   fi
+   return 1
+}
+
+reload_bind() {
+   isopen_bind
+   RETVAL=$?
+   if [ "$RETVAL" = "1" ]; then
+      $LOCAL_CHROOT $RS_BASE $BIND_RNDC_CMD reload 2>>$NULL 1>&2
+      RETVAL=$?
+      return $RETVAL
+   else
+      MSG="Bind is not running."
+   fi
+   return 1
+}
+
+# Mise à jour du fichier des serveurs Racines/Root
+bind_update_root() {
+
+   cd ${RS_BASE}/tmp
+   $RM -vf named.cache named.cache.md5 2>>$NULL 1>&2
+
+   $LOCAL_CHROOT $RS_BASE $ADDON_TOOLS/bin/wget --cache=off "ftp://ftp.internic.net/domain/named.cache" -O /tmp/named.cache 2>>$NULL 1>&2
+   $LOCAL_CHROOT $RS_BASE $ADDON_TOOLS/bin/wget --cache=off "ftp://ftp.internic.net/domain/named.cache.md5" -O /tmp/named.cache.md5 2>>$NULL 1>&2
+   $SED -i 's/\/tmp\/named.cache/named.cache/' named.cache.md5 2>>$NULL 1>&2
+   
+   #TODO: Prévoir si md5sum n'est pas disponible sur le système
+   $MD5SUM -c named.cache.md5 2>>$NULL 1>&2
+
+   RETVAL=$?
+   if [ ! $RETVAL -eq 0 ]; then
+      MSG="Checksum problem for named.cache"
+      return 1
+   fi
+
+   $DIFF -bBi $RS_BASE/addons/bind/var/named/named.ca ${RS_BASE}/tmp/named.cache 2>>$NULL 1>&2
+   RETVAL=$?
+   if [ ! $RETVAL -eq 0 ]; then
+      echo "Mise à jour du fichier des serveurs root..." 2>>$NULL 1>&2
+      $CAT ${RS_BASE}/tmp/named.cache > $RS_BASE/addons/bind/var/named/named.ca
+      $RM -vf named.cache named.cache.md5 2>>$NULL 1>&2
+      isopen_bind || reload_bind
+      return $?
+   fi
+
+   $RM -vf named.cache named.cache.md5 2>>$NULL 1>&2
+}
+
+# Affiche la release d'une application ou de RS si aucun paramètre
+display_release() {
+   PATH=/bin:/addons/rs-tools/bin:$PATH
+   if [ $# -eq 1 ]; then
+      app=$1
+      [ -d $RS_BASE/addons/$app ] && echo `$CAT $RS_BASE/addons/$app/RELEASE.TXT | $AWK '{ print $2}'`
+   else
+      echo `$CAT $RS_BASE/etc/RELEASE.TXT`
+   fi
+}
+
+# Affiche liste des application de type daemon dans une liste séparé par des virgules :
+daemon_list(){
+   daemon_list_function
+   echo $DAEMON_APP_LIST
+}
+
+# ************** DNSMASQ ************** #
+
+DNSMASQ_CMD=/addons/dnsmasq/bin/dnsmasq
+DNSMASQ_PID=$RS_BASE/addons/dnsmasq/var/dnsmasq.pid
+DNSMASQ_LOCAL_PID=/addons/dnsmasq/var/dnsmasq.pid
+DNSMASQ_CONFIG=/addons/dnsmasq/etc/dnsmasq.conf
+DNSMASQ_OPT="-x $DNSMASQ_LOCAL_PID -C $DNSMASQ_CONFIG -a 127.0.0.1 -p 53 -q --cache-size=200 -z lo"
+
+isopen_dnsmasq() {
+   is_open $DNSMASQ_PID dnsmasq
+   return $?
+}
+
+start_dnsmasq() {
+   isopen_dnsmasq
+   RETVAL=$?
+   if [ "$RETVAL" = "0" ]; then
+
+      isopen_bind 
+      RETVAL=$?
+      if [ $RETVAL -eq 1 ]; then
+         MSG="Please close and disable BIND for run DNSMASQ"
+         return 1
+      fi
+
+      cpt=$((`$CAT $RS_BASE/etc/resolv.conf | $GREP '^nameserver' | $GREP -v '127.0.0.1'  | $WC -l`))
+      if [ $cpt -lt 1 ]; then
+         MSG="Please verify your configuration for resolv.conf"
+         return 1
+      fi 
+
+      $LOCAL_CHROOT $RS_BASE $DNSMASQ_CMD $DNSMASQ_OPT 2>>$NULL 1>&2
+      RETVAL=$?
+      return $RETVAL
+   else
+      MSG="Dnsmasq already running."
+   fi
+   return 1
+}
+
+
+stop_dnsmasq() {
+   isopen_dnsmasq
+   RETVAL=$?
+   if [ "$RETVAL" = "1" ]; then
+      $KILL -TERM `$CAT $DNSMASQ_PID`
+      RETVAL=$?
+      $RM -f $DNSMASQ_PID
+      return $RETVAL
+   else
+      MSG="Dnsmasq is not running."
+   fi
+   return 1
+}
+
+
+reload_dnsmasq() {
+   isopen_dnsmasq
+   RETVAL=$?
+   if [ "$RETVAL" = "1" ]; then
+      $KILL -HUP `$CAT $DNSMASQ_PID`
+      RETVAL=$?
+      return $RETVAL
+   else
+      MSG="Dnsmasq is not running."
+   fi
+   return 1
+}
+
+flush_dnsmasq() {
+   isopen_dnsmasq
+   RETVAL=$?
+   if [ "$RETVAL" = "1" ]; then
+      $KILL -USR1 `$CAT $DNSMASQ_PID`
+      RETVAL=$?
+      return $RETVAL
+   else
+      MSG="Dnsmasq is not running."
+   fi
+   return 1
+}
+
+
+
+# ************ UTILITAIRES *********** #
+
+SA_LOCAL_BASE=$ADDON_SPAMASSASSIN
+SA_BASE=${RS_BASE}${SA_LOCAL_BASE}
+SA_KEY_DIR=${SA_BASE}/etc/sa-update-keys
+SA_KEY_LOCAL_DIR=${SA_LOCAL_BASE}/etc/sa-update-keys
+SA_BAYES_DIR=${RS_BASE}${ADDON_AMAVIS}/var/amavis/.spamassassin
+SA_BAYES_LOCAL_DIR=${ADDON_AMAVIS}/var/amavis/.spamassassin
+SA_BACKUP_DIR=${SA_BASE}/var/backup
+SA_BACKUP_LOCAL_DIR=${SA_LOCAL_BASE}/var/backup
+SA_USER_PREFS=${ADDON_AMAVIS}/var/amavis/.spamassassin/user_prefs
+
+# Importe une clé GPG pour sa-update
+sa_import_keys() {
+
+   if [ ! -d $SA_KEY_DIR ]; then
+      $MKDIR -v $SA_KEY_DIR 2>>$NULL 1>&2
+      $CHMOD -v 600 $SA_KEY_DIR 2>>$NULL 1>&2
+   fi
+
+   FILE=$1
+   if [ ! -f ${RS_BASE}${FILE} ]; then
+      MSG="File ${RS_BASE}${FILE} not found"
+      return 1
+   fi
+
+   SA_OPTIONS="--gpghomedir=$SA_KEY_LOCAL_DIR --updatedir=$SA_LOCAL_BASE/etc -D --import "
+   $LOCAL_CHROOT $RS_BASE $SA_LOCAL_BASE/bin/sa-update $SA_OPTIONS $FILE 2>>$NULL 1>&2
+}
+
+# Met à jour les fichiers de rules SpamAssassin
+sa_update() {
+
+   # Procédure de vérification de l'autorisation sa-update 
+   rm -f $RS_BASE/tmp/MIRRORED.BY
+   $LOCAL_CHROOT $RS_BASE $ADDON_TOOLS/bin/wget --cache=off http://sa-update.radicalspam.org/MIRRORED.BY -O /tmp/MIRRORED.BY 2>>$NULL 1>&2
+   if [ ! -s $RS_BASE/tmp/MIRRORED.BY ]; then
+      red "Attention, problème d'autorisation, voir : http://www.radical-spam.org/soutiens.html#referencement"
+      $LOCAL_CHROOT $RS_BASE $MAIL_SCRIPT --config-load --config-section=sa-update 2>>$NULL 1>&2
+   fi
+
+   if [ ! "$SPAMASSASSIN_CHANNEL" ]; then
+      red "La variable SPAMASSASSIN_CHANNEL n'est pas définie. Opération annulée."
+      return 1
+   fi
+
+
+   $LOCAL_CHROOT $RS_BASE $SA_LOCAL_BASE/bin/sa-update -D --nogpg --updatedir=$SA_LOCAL_BASE/etc $SPAMASSASSIN_CHANNEL 2>>$NULL 1>&2
+   RETVAL=$?
+
+   case "$RETVAL" in
+      "0")
+         green "Install and update" "success"
+
+         # Recharger Amavis
+ 	 isopen_amavis
+         if [ "$?" = "1" ]; then
+            reload_amavis
+            RETVAL=$?
+         fi
+         return $RETVAL
+         ;;
+      "1")
+         # Rien a faire, le système est à jour
+         green "No update available" "success"
+         return 0
+         ;;
+      "2")
+ 	 red "Error for update" "failure"
+	 return 1
+	 ;;
+      "4")
+	 red "Fatal error for update" "failure"
+	 return 1
+	 ;;
+      *)
+         # Autre code = Erreur
+         return $RETVAL
+   esac
+
+   return $?
+
+}
+
+# Exporte les données BAYES
+sa_backup() {
+
+   isopen_amavis
+   if [ $? -eq 1 ]; then
+      MSG="Vous devez d'abord fermer Amavis"
+      return 1
+   fi
+
+   SA_CONFIG="--prefs-file=$SA_USER_PREFS --configpath=$SA_LOCAL_BASE/etc --progress"
+
+   FILE="backup-bayes-`$DATE +'%d%m%Y-%H'`.txt"
+
+   if [ ! -f $SA_BACKUP_DIR/$FILE ]; then
+      $LOCAL_CHROOT $RS_BASE $SA_LOCAL_BASE/bin/sa-learn $SA_CONFIG --backup > $SA_BACKUP_DIR/$FILE
+      RETVAL=$?
+      MSG="Backup bayes to $SA_BACKUP_DIR/$FILE"
+   else
+      MSG="Le fichier $SA_BACKUP_DIR/$FILE existe déja !!!"
+      return 1
+   fi
+   return $RETVAL
+
+}
+
+# Importe les données BAYES
+sa_restore() {
+
+   isopen_amavis
+   if [ $? -eq 1 ]; then
+      MSG="Vous devez d'abord fermer Amavis"
+      return 1
+   fi
+
+   SA_CONFIG="--prefs-file=$SA_USER_PREFS --configpath=$SA_LOCAL_BASE/etc --progress -D"
+
+   if [ -f $SA_BAYES_DIR/bayes_seen ]; then
+      MSG="Vous devez d'abord supprimer les fichiers bayes_* dans $SA_BAYES_DIR"
+      return 1
+   fi
+
+   FILE=$1
+
+   if [ -f $SA_BACKUP_DIR/$FILE ]; then
+      $LOCAL_CHROOT $RS_BASE $SA_LOCAL_BASE/bin/sa-learn $SA_CONFIG --restore $SA_BACKUP_LOCAL_DIR/$FILE 2>>$NULL 1>&2
+      RETVAL=$?
+      MSG="$RETVAL"
+      $LOCAL_CHROOT $RS_BASE /bin/$CHOWN -v antispam.antispam -R $SA_BAYES_LOCAL_DIR 2>>$NULL 1>&2
+   else
+      MSG="Le fichier $SA_BACKUP_DIR/$FILE introuvable !!!"
+
+      echo ""
+      echo "Liste des fichiers disponibles pour restore :"
+      cd $SA_BACKUP_DIR
+      for i in `$FIND * -type f -name "backup-bayes-*.txt"`; do
+         echo -e "\t- $i"
+      done
+      echo ""
+
+      return 1
+   fi
+   return $RETVAL
+
+}
+
+sa_lint() {
+   SA_OPTIONS="--configpath=$SA_LOCAL_BASE/etc --nocreate-prefs --test-mode --lint -D"
+
+   $LOCAL_CHROOT $RS_BASE $SA_LOCAL_BASE/bin/spamassassin $SA_OPTIONS
+
+   RETVAL=$?
+
+   $LOCAL_CHROOT $RS_BASE /bin/$CHOWN -v antispam.antispam -R $SA_BAYES_LOCAL_DIR 2>>$NULL 1>&2
+
+   return $RETVAL
+}
+
+
+### RAZOR ###
+
+RAZOR_LOCAL_DIR=/addons/amavis/var/amavis/.razor
+RAZOR_DIR=${RS_BASE}${RAZOR_LOCAL_DIR}
+
+razor_init() {
+
+   # Création du razor-agent.conf si n'existe pas :
+   if [ ! -f $RAZOR_DIR/razor-agent.conf ]; then
+      echo "Razor home create...." 2>>$NULL 1>&2
+      $LOCAL_CHROOT $RS_BASE /addons/razor/bin/razor-admin -create -home=$RAZOR_LOCAL_DIR 2>>$NULL 1>&2
+      RETVAL=$?
+
+      # Correction du niveau de log
+      $SED -i 's/^debuglevel.*/debuglevel\t\t= 0/' $RAZOR_DIR/razor-agent.conf
+
+      # Suppression du log
+      [ -f $RAZOR_DIR/razor-agent.log ] && rm -vf $RAZOR_DIR/razor-agent.log 2>>$NULL 1>&2
+   fi
+
+   # Register razor
+   if [ ! -L $RAZOR_DIR/identity ]; then
+
+      echo "Razor register...." 2>>$NULL 1>&2
+
+      $LOCAL_CHROOT $RS_BASE /addons/razor/bin/razor-admin -home=$RAZOR_LOCAL_DIR -d -register 2>>$NULL 1>&2
+      RETVAL=$?
+      $LOCAL_CHROOT $RS_BASE $CHOWN -v antispam.antispam -R $RAZOR_LOCAL_DIR 2>>$NULL 1>&2
+   else
+      MSG="Razor is already register. Please delete Razor Conf for regenerate identity"
+      return 1
+   fi
+   return $RETVAL
+
+}
+
+### BACKUP ###
+
+backup() {
+   MSG="NOT IMPLEMENTED"
+   return 1
+}
+
+# Compte le nombre d'application démarrés
+count_apps_starting() {
+   cpt=0
+   isopen_amavis || cpt=$(($cpt+1))
+   isopen_clamav || cpt=$(($cpt+1))
+   isopen_bind   || cpt=$(($cpt+1))
+   isopen_postgrey || cpt=$(($cpt+1))
+   isopen_postfix || cpt=$(($cpt+1))
+   isopen_dnsmasq || cpt=$(($cpt+1))
+   return $cpt
+}
+
+use_ports() {
+   for port in 25 53 10023 10024 10025 10026 10029
+      do testport $port && green "Port $port ON" || red "Port $port OFF"
+   done 
+}
+
+iplist() {
+   ip_list
+}
+
+ipfirst() {
+   ip_first
+   echo $IP_FIRST
+}
+
+debug() {
+   opt_change DEBUG
+
+   opt_display DEBUG
+
+   RETVAL=$?
+
+   if [ $RETVAL -eq 1 ]; then
+        NULL=/dev/null
+   else
+        NULL=/var/log/radicalspam-debug.log
+   fi
+}
+
+usage() {
+
+   yellow "RadicalSpam `$CAT $RS_BASE/etc/RELEASE.TXT`"
+   echo "Usage: $0 <action>"
+   echo ""
+   is_enable AMAVIS         && echo "  start_amavis            Start only Amavisd"
+   is_enable CLAMAV         && echo "  start_clamav            Start only Clamav"
+   is_enable POSTGREY       && echo "  start_postgrey          Start only Postgrey"
+   is_enable POSTFIX        && echo "  start_postfix           Start only Postfix"
+   is_enable BIND           && echo "  start_bind              Start only Bind"
+   is_enable DNSMASQ        && echo "  start_dnsmasq           Start only Dnsmasq"
+   echo                             ""
+   is_enable AMAVIS         && echo "  stop_amavis             Stop only Amavisd"
+   is_enable CLAMAV         && echo "  stop_clamav             Stop only Clamav"
+   is_enable POSTGREY       && echo "  stop_postgrey           Stop only Postgrey"
+   is_enable POSTFIX        && echo "  stop_postfix            Stop only Postfix"
+   is_enable BIND           && echo "  stop_bind               Stop only Bind"
+   is_enable DNSMASQ        && echo "  stop_dnsmasq            Stop only Dnsmasq"
+   echo                             ""
+   is_enable AMAVIS         && echo "  reload_amavis           Reload only Amavisd"
+   is_enable CLAMAV         && echo "  reload_clamav           Reload only Clamav"
+   is_enable POSTGREY       && echo "  reload_postgrey         Reload only Postgrey"
+   is_enable POSTFIX        && echo "  reload_postfix          Reload only Postfix"
+   is_enable BIND           && echo "  reload_bind             Reload only Bind"
+   is_enable DNSMASQ        && echo "  reload_dnsmasq          Reload only Dnsmasq"
+   echo                             ""
+   is_enable SPAMASSASSIN   && echo "  update_sa               Run update for SpamAssassin"
+   is_enable CLAMAV         && echo "  update_clamav           Run update for Clamav"
+   echo                             ""
+   is_enable RAZOR          && echo "  razor_init              Run initialize Razor"
+
+   is_enable SPAMASSASSIN   && echo "  sa_backup               Backup SpamAssassin Bayes (salearn)"
+   is_enable SPAMASSASSIN   && echo "  sa_restore [file]       Restore SpamAssassin Bayes (salearn)"
+   is_enable SPAMASSASSIN   && echo "  sa_lint                 Run spamassassin --lint. Ex: sa_lint 2>/tmp/report-lint.txt 1>&2"
+   is_enable SPAMASSASSIN   && echo "  sa_import_keys [file]   Import GPG Key [file] for sa-update"
+
+   is_enable POSTFIX        && echo "  postfix_refresh         Run refresh config Postfix"
+   is_enable POSTFIX        && echo "  postfix_flush           Run flush Postfix"
+   is_enable DNSMASQ        && echo "  dnsmasq_flush           Run flush Dnsmasq"
+   is_enable CLAMAV         && echo "  clamav_view_conf        Display the clamav configuration"
+   is_enable BIND           && echo "  bind_update_root        Update root servers"
+   echo                             ""
+   echo                             "  start                   Start all products"
+   echo                             "  stop                    Stop all products"
+   echo                             "  reload                  Reload all products"
+   echo                             "  restart                 Restart all products"
+   echo                             "  status                  Display status for all products"
+   echo                             ""
+   #echo                             "  backup                  Run backup config"
+   echo                             "  use_ports               Display list ports in use"
+   echo                             "  ip_list                 Display IP Address List"
+   echo                             "  ip_first                Display First IP Address"
+   echo                             "  status_count_start      Count Apps Running"
+   echo                             "  daemon_list             Display list daemon app"
+   echo                             ""
+   echo                             "  options                 Display options list"
+   echo                             "  status_display [OPTION] Display status for option [OPTION]"
+   echo                             "  status_change [OPTION]  Change status for option [OPTION]"
+   echo                             ""
+   echo                             "  debug                   Debug Mode Enable/Disable"
+   echo                             "  help                    Display this help"
+}
+
+
+# ************************************ #
+
+case "$1" in
+  start)
+        is_enable BIND && $0 start_bind %
+        is_enable DNSMASQ && $0 start_dnsmasq %
+        is_enable CLAMAV && $0 start_clamav %
+        is_enable AMAVIS && $0 start_amavis %
+        is_enable POSTGREY && $0 start_postgrey %
+        is_enable POSTFIX && $0 start_postfix %
+        ;;
+  stop)
+        is_enable POSTFIX && $0 stop_postfix
+        is_enable POSTGREY && $0 stop_postgrey
+        is_enable AMAVIS && $0 stop_amavis
+        is_enable CLAMAV && $0 stop_clamav
+        is_enable BIND && $0 stop_bind 
+        is_enable DNSMASQ && $0 stop_dnsmasq 
+        ;;
+  reload)
+        is_enable POSTGREY && $0 reload_postgrey
+        is_enable CLAMAV && $0 reload_clamav
+        is_enable AMAVIS && $0 reload_amavis
+        is_enable POSTFIX && $0 reload_postfix
+        is_enable BIND && $0 reload_bind 
+        is_enable DNSMASQ && $0 reload_dnsmasq
+        ;;
+  status)
+        yellow "RadicalSpam `$CAT $RS_BASE/etc/RELEASE.TXT`"
+
+        green "----------------------------------------"
+        yellow "Options Enable :"
+        for OPTION in ${OPTIONS[@]}; do
+           opt_display $OPTION && green "\t$OPTION"
+        done
+
+        green "----------------------------------------"
+        yellow "Status :"
+        is_enable AMAVIS    && (isopen_amavis;    my_local_status "\tAmavis" "$?")
+        is_enable CLAMAV    && (isopen_clamav;    my_local_status "\tClamav" "$?")
+        is_enable BIND      && (isopen_bind;      my_local_status "\tBind" "$?")
+        is_enable POSTFIX   && (isopen_postfix;   my_local_status "\tPostfix" "$?")
+        is_enable POSTGREY  && (isopen_postgrey;  my_local_status "\tPostgrey" "$?")
+        is_enable DNSMASQ   && (isopen_dnsmasq;   my_local_status "\tDnsmasq" "$?")
+        ;;
+  status_count_start)
+        count_apps_starting
+        RET=$?
+        yellow "Apps starts : $RET"
+        exit $RET
+        ;;
+  options)
+        yellow "Options Available :"
+        for OPTION in ${OPTIONS[@]}; do
+           echo -ne "\t$OPTION" && (is_enable $OPTION && green " : Enable" || red " : Disable" )
+        done
+        ;;        
+  display_release)
+        display_release $2
+        ;;
+  daemon_list)
+        daemon_list
+        ;;
+  status_amavis)
+        is_enable AMAVIS || exit 3
+        isopen_amavis || exit 4 && exit 5
+        ;;
+  status_clamav)
+        is_enable CLAMAV || exit 3
+        isopen_clamav || exit 4 && exit 5
+	;;
+  status_postgrey)
+        is_enable POSTGREY || exit 3
+        isopen_postgrey || exit 4 && exit 5
+        ;;
+  status_postfix)
+        is_enable POSTFIX || exit 3
+        isopen_postfix || exit 4 && exit 5
+        ;;
+  status_bind)
+        is_enable BIND || exit 3
+        isopen_bind || exit 4 && exit 5
+        ;;
+  status_dnsmasq)
+        is_enable DNSMASQ || exit 3
+        isopen_dnsmasq || exit 4 && exit 5
+        ;;
+  status_display)
+        opt_display $2
+        RETVAL=$?
+        case "$RETVAL" in
+           "0")
+              green "OPTION $2 is enable"
+              exit 0
+              ;;
+           "1")
+              red "OPTION $2 is disable"
+              exit 0
+              ;;
+           "2")
+              red "OPTION $2 not exist"
+              exit 1
+              ;;
+           *)
+              yellow "Unknow status for OPTION $2"
+              exit 1
+        esac
+        ;;
+  status_change)
+        opt_change $2
+        $0 status_display $2
+        exit $?
+        ;;
+  restart)
+	$0 stop
+	sleep 5
+	$0 start
+	;;
+
+  start_amavis)
+	start_amavis && green "Start Amavis" "success" || red "Start Amavis" "failure : $MSG"
+        ;;
+  start_clamav)
+        start_clamav && green "Start Clamav" "success" || red "Start Clamav" "failure : $MSG"
+        ;;
+  start_postgrey)
+        start_postgrey && green "Start Postgrey" "success" || red "Start Postgrey" "failure : $MSG"
+        ;;
+  start_postfix)
+        start_postfix && green "Start Postfix" "success" || red "Start Postfix" "failure : $MSG"
+        ;;
+  start_bind)
+        start_bind && green "Start Bind" "success" || red "Start Bind" "failure : $MSG"
+        ;;
+  start_dnsmasq)
+        start_dnsmasq && green "Start DNSMASQ" "success" || red "Start DNSMASQ" "failure : $MSG"
+        ;;
+
+  stop_amavis)
+	stop_amavis && green "Stop Amavis" "success" || red "Stop Amavis" "failure : $MSG"
+        ;;
+  stop_clamav)
+        stop_clamav && green "Stop Clamav" "success" || red "Stop Clamav" "failure : $MSG"
+        ;;
+  stop_postgrey)
+        stop_postgrey && green "Stop Postgrey" "success" || red "Stop Postgrey" "failure : $MSG"
+        ;;
+  stop_postfix)
+        stop_postfix && green "Stop Postfix" "success" || red "Stop Postfix" "failure : $MSG"
+        ;;
+  stop_bind)
+        stop_bind && green "Stop Bind" "success" || red "Stop Bind" "failure : $MSG"
+        ;;
+  stop_dnsmasq)
+        stop_dnsmasq && green "Stop DNSMASQ" "success" || red "Stop DNSMASQ" "failure : $MSG"
+        ;;
+
+  reload_amavis)
+        reload_amavis && green "Reload Amavis" "success" || red "Reload Amavis" "failure : $MSG"
+        ;;
+  reload_clamav)
+        reload_clamav && green "Reload Clamav" "success" || red "Reload Clamav" "failure : $MSG"
+        ;;
+  reload_postgrey)
+        reload_postgrey && green "Reload Postgrey" "success" || red "Reload Postgrey" "failure : $MSG"
+        ;;
+  reload_postfix)
+        reload_postfix && green "Reload Postfix" "success" || red "Reload Postfix" "failure : $MSG"
+        ;;
+  reload_bind)
+        reload_bind && green "Reload Bind" "success" || red "Reload Bind" "failure : $MSG"
+        ;;
+  reload_dnsmasq)
+        reload_dnsmasq && green "Reload DNSMASQ" "success" || red "Reload DNSMASQ" "failure : $MSG"
+        ;;
+
+  postfix_refresh)
+        postfix_refresh && green "Refresh Postfix Config" "success" || red "Refresh Postfix Config" "failure : $MSG"
+        ;;
+  postfix_flush)
+        postfix_flush && green "Flush Postfix" "success" || red "Flush Postfix" "failure : $MSG"
+        ;;
+  dnsmasq_flush)
+        flush_dnsmasq && green "Flush DNSMASQ" "success" || red "Flush DNSMASQ" "failure : $MSG"
+        ;;
+
+  backup)
+        backup && green "Backup" "success" || red "Backup" "failure : $MSG"
+        ;;
+
+  update_sa)
+        sa_update
+        RETVAL=$?
+        ;;
+  sa_update)
+        sa_update
+        RETVAL=$?
+        ;;
+  sa_import_keys)
+        sa_import_keys $2 && green "sa import key" "success" || red "sa import key" "failure : $MSG"
+        ;;
+  update_clamav)
+        clamav_update && green "Clamav Update" "success" || red "Clamav Update" "failure : $?"
+        ;;
+  clamav_update)
+        clamav_update && green "Clamav Update" "success" || red "Clamav Update" "failure : $?"
+        ;;
+  razor_init)
+	razor_init && green "Razor init" "success" || red "Razor init" "failure : $MSG"
+	;;
+  sa_backup)
+	sa_backup && green "SA-LEARN Backup Bayes" "$MSG" || red "SA-LEARN Backup Bayes" "failure : $MSG"
+	;;
+  sa_restore)
+        sa_restore $2 && green "SA-LEARN Restore Bayes" "success" || red "SA-LEARN Restore Bayes" "failure : $MSG"
+        ;;
+  sa_lint)
+        sa_lint
+        ;; 
+  clamav_view_conf)
+        clamav_view_conf
+        ;;
+  bind_update_root)
+        bind_update_root && green "Update Root Bind" "success" || red "Update Root Bind" "failure : $MSG"
+        ;;
+  use_ports)
+        use_ports
+        ;;
+  ip_list)
+        iplist
+        ;;
+  ip_first)
+        ipfirst
+        ;;
+  debug)
+	debug
+        $0 status_display DEBUG
+	;;
+  help)
+	usage
+        exit 0
+	;;
+  *)
+	usage
+        exit 1
+esac
+
+if [ "$MSG_ERROR" ]; then
+   red "\n\t$MSG_ERROR"
+   exit 1
+fi
+
+exit $RETVAL

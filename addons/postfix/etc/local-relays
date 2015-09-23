@@ -1,0 +1,4 @@
+# Liste des domaines autorisés comme relais
+# Ajoutez tous les domaines pour lesquelle cette machine est définie comme MX
+# exemple.net    OK
+

@@ -1,0 +1,15 @@
+/addons/perl/lib/5/ExtUtils/CBuilder.pm
+/addons/perl/lib/5/ExtUtils/CBuilder/Base.pm
+/addons/perl/lib/5/ExtUtils/CBuilder/Platform/Unix.pm
+/addons/perl/lib/5/ExtUtils/CBuilder/Platform/VMS.pm
+/addons/perl/lib/5/ExtUtils/CBuilder/Platform/Windows.pm
+/addons/perl/lib/5/ExtUtils/CBuilder/Platform/Windows/BCC.pm
+/addons/perl/lib/5/ExtUtils/CBuilder/Platform/Windows/GCC.pm
+/addons/perl/lib/5/ExtUtils/CBuilder/Platform/Windows/MSVC.pm
+/addons/perl/lib/5/ExtUtils/CBuilder/Platform/aix.pm
+/addons/perl/lib/5/ExtUtils/CBuilder/Platform/cygwin.pm
+/addons/perl/lib/5/ExtUtils/CBuilder/Platform/darwin.pm
+/addons/perl/lib/5/ExtUtils/CBuilder/Platform/dec_osf.pm
+/addons/perl/lib/5/ExtUtils/CBuilder/Platform/os2.pm
+/addons/perl/man/man3/ExtUtils::CBuilder.3
+/addons/perl/man/man3/ExtUtils::CBuilder::Platform::Windows.3

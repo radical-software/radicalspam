@@ -1,0 +1,5 @@
+# Liste noire des HELO envoyés par des spammeurs
+# Ex (1 entrée par ligne) :
+# spam.org           REJECT SPAM
+# 127.0.0.2	     REJECT SPAM
+

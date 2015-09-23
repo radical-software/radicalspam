@@ -1,0 +1,10 @@
+/addons/perl/lib/5/Fatal.pm
+/addons/perl/lib/5/autodie.pm
+/addons/perl/lib/5/autodie/exception.pm
+/addons/perl/lib/5/autodie/exception/system.pm
+/addons/perl/lib/5/autodie/hints.pm
+/addons/perl/man/man3/Fatal.3
+/addons/perl/man/man3/autodie.3
+/addons/perl/man/man3/autodie::exception.3
+/addons/perl/man/man3/autodie::exception::system.3
+/addons/perl/man/man3/autodie::hints.3

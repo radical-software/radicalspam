@@ -1,0 +1,4 @@
+/addons/perl/bin/corelist
+/addons/perl/lib/5/Module/CoreList.pm
+/addons/perl/man/man1/corelist.1
+/addons/perl/man/man3/Module::CoreList.3

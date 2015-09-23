@@ -1,0 +1,4 @@
+# Liste noire des adresses IP clientes
+# Ex (1 adresse par ligne) :
+# 127.0.0.2		REJECT SPAM
+

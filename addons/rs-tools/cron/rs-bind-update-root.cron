@@ -1,0 +1,7 @@
+# Dans /etc/cron.d :
+# ln -sf /var/rs/addons/rs-tools/cron/rs-bind-update-root.cron /etc/cron.d/rs-bind-update-root
+
+# Mise à jour hebdomadaire du fichier de Root Servers pour Bind :
+# Lancement tous les dimanches à 3H du matin
+0 3 * * 0 root nice -n 19 su - -c "/etc/init.d/radicalspam bind_update_root" >/dev/null 2>&1
+

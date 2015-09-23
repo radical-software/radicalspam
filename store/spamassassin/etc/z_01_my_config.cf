@@ -1,0 +1,60 @@
+dns_available           yes
+
+skip_rbl_checks         0
+
+required_score          8.0
+
+report_contact          root@localhost
+clear-report-template
+report 
+report ------------------ Rapport SpamAssassin Version _VERSION_ ------------
+report Host  : _HOSTNAME_
+report Hits  : _SCORE_ points sur _REQD_ requis
+report Bayes : _BAYES_
+report Learn : _AUTOLEARN_
+report DCCR  : _DCCR_
+report Langs : _LANGUAGES_
+report Ver   : _VERSION_ / _SUBVERSION_
+report 
+report --------------------------- RBL --------------------------------------
+report _RBL_
+report 
+report -------------------------- RELAYS ------------------------------------
+report TRUSTED   : _RELAYSTRUSTED_
+report UNTRUSTED : _RELAYSUNTRUSTED_
+report INTERNAL  : _RELAYSINTERNAL_
+report EXTERNAL  : _RELAYSEXTERNAL_
+report 
+report ---------------------------- SCORES ----------------------------------
+report _SUMMARY_
+report 
+report ------------------------ PREVISUALISATION ----------------------------
+report _PREVIEW_
+report 
+
+# Razor2
+ifplugin Mail::SpamAssassin::Plugin::Razor2
+use_razor2              1
+razor_config            /addons/amavis/var/amavis/.razor/razor-agent.conf
+razor_timeout           8
+endif # Mail::SpamAssassin::Plugin::Razor2
+
+# DCC
+ifplugin Mail::SpamAssassin::Plugin::DCC
+use_dcc                 1
+dcc_path                /addons/dcc/bin/dccproc
+dcc_home                /addons/dcc/var/dcc
+dcc_options             -h /addons/dcc/var/dcc
+dcc_timeout             8
+endif # Mail::SpamAssassin::Plugin::DCC
+
+# TextCat :
+ifplugin Mail::SpamAssassin::Plugin::TextCat
+ok_languages            all
+endif # Mail::SpamAssassin::Plugin::TextCat
+
+ifplugin Mail::SpamAssassin::Plugin::SPF
+do_not_use_mail_spf_query	1
+endif # Mail::SpamAssassin::Plugin::SPF
+
+#trusted_networks 127.0.0.1

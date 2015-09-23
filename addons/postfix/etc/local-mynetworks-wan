@@ -1,0 +1,7 @@
+# Adresses IP et plages IP des machines EXTERNES autorisés à envoyer des mails à travers ce relais SMTP
+# 1 adresse par ligne avec en 2ème colonne un commentaire (idéalement le nom fonctionnel de la machine)
+# Exemple :
+# 130.0.0.1		# serveur Newsletter
+# Utilisez ce fichier pour créer des exceptions à la sécurité des mails en provenance d'internet
+
+127.0.0.1       # loopback

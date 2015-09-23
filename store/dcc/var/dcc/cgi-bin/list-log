@@ -1,0 +1,207 @@
+#! /usr/bin/perl -wT -I/var/dcc/cgi-bin
+
+# List the messages in a user's log directory
+
+# Copyright (c) 2010 by Rhyolite Software, LLC
+#
+# This agreement is not applicable to any entity which sells anti-spam
+# solutions to others or provides an anti-spam solution as part of a
+# security solution sold to other entities, or to a private network
+# which employs the DCC or uses data provided by operation of the DCC
+# but does not provide corresponding data to other users.
+#
+# Permission to use, copy, modify, and distribute this software without
+# changes for any purpose with or without fee is hereby granted, provided
+# that the above copyright notice and this permission notice appear in all
+# copies and any distributed versions or copies are either unchanged
+# or not called anything similar to "DCC" or "Distributed Checksum
+# Clearinghouse".
+#
+# Parties not eligible to receive a license under this agreement can
+# obtain a commercial license to use DCC by contacting Rhyolite Software
+# at sales@rhyolite.com.
+#
+# A commercial license would be for Distributed Checksum and Reputation
+# Clearinghouse software.  That software includes additional features.  This
+# free license for Distributed ChecksumClearinghouse Software does not in any
+# way grant permision to use Distributed Checksum and Reputation Clearinghouse
+# software
+#
+# THE SOFTWARE IS PROVIDED "AS IS" AND RHYOLITE SOFTWARE, LLC DISCLAIMS ALL
+# WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES
+# OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL RHYOLITE SOFTWARE, LLC
+# BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES
+# OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
+# WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION,
+# ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+#
+# Rhyolite Software DCC 1.3.138-1.32 $Revision$
+# Generated automatically from list-log.in by configure.
+
+# This file must protected with an equivalent to httpd.conf lines
+#   in the README file.
+
+
+use strict 'subs';
+use POSIX qw(strftime);
+
+use common;
+
+
+get_log_msgs($query{msg} ? $query{msg} : undef, 20);
+
+html_head("Messages Logged for $user at $hostname");
+
+print "<H3>";
+print $#msgs_num >= 0 ? ($#msgs_num+1) : "No";
+print " messages logged for <EM>$user</EM> at $hostname at ";
+print strftime "%x %X", localtime;
+print "</H3>\n<P>\n<P class=warn><STRONG>\n";
+print $query{result} ? html_str_encode($query{result}) : "&nbsp;";
+print "</STRONG>\n<P>\n";
+common_buttons();
+
+print "</TABLE>\n";
+
+if ($#msgs_num >= 0) {
+    my($msg_num, $msg, $next_date, $last_date);
+
+    print <<EOF;
+<P>
+<TABLE   border=1 cellpadding="2%" frame=void rules=rows
+    summary="messages logged for $user at $hostname">
+EOF
+
+    print_links();
+
+    for ($msg_num = $msg_first; $msg_num <= $msg_last; ++$msg_num) {
+	my($msg) = $msgs_num[$msg_num];
+
+	next if (!$msg);
+	$next_date = $msgs_date{$msg};
+	if ($next_date =~ s/(.*) .*/$1/) {
+	    if (! $last_date) {
+		print "<TR><TH>\n";
+		print "    <TH>$next_date";
+		if ($msg_part_num) {
+		    print " part $msg_part_num";
+		    $msg_part_num= 0;
+		}
+		print "\n    <TH>From\n    <TH>&nbsp;\n    <TH>Subject\n";
+	    } elsif ($last_date ne $next_date) {
+		print "<TR><TH>&nbsp\n";
+		print "    <TH>$next_date";
+		print "\n    <TH>&nbsp;\n    <TH>&nbsp;\n    <TH>&nbsp;\n";
+	    }
+	    $last_date = $next_date;
+	}
+
+	print "<TR><TD class=\"mono small\">$list_msg_link${url_ques}msg=$msg\">";
+	print $msg_num+1;
+	print <<EOF;
+</A>
+    <TD class=mono>$msgs_date{$msg}
+    <TD>$msgs_from{$msg}
+    <TD class=small>$msgs_result{$msg}
+    <TD>$msgs_subject{$msg}
+EOF
+    }
+
+    if ($msg_num > $#msgs_num) {
+	print <<EOF;
+<TR><TH>&nbsp;
+    <TH>Next Day
+    <TH>&nbsp;
+    <TH>&nbsp;
+    <TH>&nbsp;
+EOF
+    }
+
+    print_links();
+
+
+    print <<EOF;
+</TABLE>
+
+<P>
+<TABLE class=small border=0 cellspacing=0 cellpadding=0>
+<TR><TD class=stronger>Grey
+    <TD>greylist embargo
+    <TD class=stronger>OK-Grey
+    <TD>greylist embargo ended
+<TR><TD class=stronger>DCC
+    <TD>bulk according to DCC
+    <TD class=stronger>OK-DCC
+    <TD>not bulk according to DCC
+<TR><TD class=stronger>Rep
+    <TD>bulk DCC Reputation
+<TR><TD class=stronger>MTA
+    <TD>blacklisted by mail system
+    <TD class=stronger>MTA-OK
+    <TD>whitelisted by mail system
+<TR><TD class=stronger>BL
+    <TD>blacklisted in whiteclnt files&nbsp;&nbsp;&nbsp;
+    <TD class=stronger>WL
+    <TD>whitelisted in whiteclnt files
+EOF
+    my $args = "$DNSBL_ARGS $DCCM_ARGS $DCCIFD_ARGS";
+    if ($args =~ /-B/) {
+	if ($args !~ /-B\s*set:group=\d+/i) {
+	    print <<EOF;
+<TR><TD class=stronger>DNSBL&nbsp;
+    <TD>DNS blacklisted
+EOF
+	} else {
+	    print <<EOF;
+<TR><TD class=stronger>DNSBLn&nbsp;
+    <TD>DNS blacklisted
+EOF
+	}
+    }
+
+    print <<EOF;
+<TR><TD><I>italic</I>
+    <TD>checks off
+</TABLE>
+
+EOF
+}
+
+html_footer();
+print "</BODY>\n</HTML>\n";
+
+# re-enable mail notifications
+unlink("$user_dir/notify.marker", "$user_dir/notify.pending",
+       "$user_dir/notify.block");
+close(MARK)
+    if (open(MARK, "> $user_dir/notify.marker"));
+
+
+
+sub print_links {
+    my($msg_num);
+
+    print "<TR><TD colspan=4>\n";
+    print "    $list_log_link\">Newest</A>\n";
+    print_bounded_link($msg_day_last+1, "Next Day");
+    print_bounded_link($msg_newer,	"Newer");
+    print_bounded_link($msg_first-1,	"Older");
+    print_bounded_link($msg_day_first-1, "Previous Day");
+    print_bounded_link(0,		"Oldest");
+}
+
+
+
+sub print_bounded_link {
+    my($msg_num, $name) = @_;
+    my($val);
+
+    if ($msg_num > $#msgs_num) {
+	$val = "";
+    } elsif ($msg_num < 0) {
+	$val = "${url_ques}msg=$msgs_num[0]";
+    } else {
+	$val = "${url_ques}msg=$msgs_num[$msg_num]";
+    }
+    print "    $list_log_link$val\">$name</A>\n";
+}

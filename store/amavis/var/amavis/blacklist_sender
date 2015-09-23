@@ -1,0 +1,4 @@
+# Liste noire des expéditeurs
+# Ajouter une adresse par ligne
+# Ex pour un domaine complet : .domain-externe.com
+# Ex pour un email : nom@domain-externe.com

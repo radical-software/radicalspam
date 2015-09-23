@@ -1,0 +1,12 @@
+bzip2 1.0.6
+Rsync 2.6.9
+Fetchmail 6.3.8
+rar 3.7.1
+TNEF 1.4.3
+mini_sendmail 1.3.6
+file-5.04
+ripole-0.2.0
+cabextract-1.2
+p7zip-9.04
+gnupg-1.4.10
+idnkit-1.0

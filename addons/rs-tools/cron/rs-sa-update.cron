@@ -1,0 +1,5 @@
+# Dans /etc/cron.d :
+# ln -sf /var/rs/addons/rs-tools/cron/rs-sa-update.cron /etc/cron.d/rs-sa-update
+
+# Mise à jour chaque jour à 02H30.
+30 2 * * * root su - -c "/etc/init.d/radicalspam update_sa" >/dev/null 2>/dev/null

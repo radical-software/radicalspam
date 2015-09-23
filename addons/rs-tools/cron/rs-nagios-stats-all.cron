@@ -1,0 +1,6 @@
+# Pour mettre dans /etc/cron.d :
+# ln -sf /var/rs/addons/rs-tools/cron/rs-nagios-stats-all.cron /etc/cron.d/rs-nagios-stats-all
+
+# Mise a jour des compteurs toutes les 5 minutes :
+*/10 * * * * root nice -n 5 su - -c "/var/rs/addons/nagios/bin/stats_all.sh"
+

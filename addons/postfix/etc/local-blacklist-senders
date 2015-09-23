@@ -1,0 +1,5 @@
+# Liste noire des emails et domaines expéditeurs de Spam
+# Ex (1 adresse par ligne) :
+# mail@spam.com           REJECT SPAM
+# spam.com                REJECT SPAM
+

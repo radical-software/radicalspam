@@ -1,0 +1,4 @@
+/addons/perl/bin/cpansign
+/addons/perl/lib/site_perl/5/Module/Signature.pm
+/addons/perl/man/man1/cpansign.1
+/addons/perl/man/man3/Module::Signature.3

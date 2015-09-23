@@ -1,0 +1,8 @@
+IPv6 on   version=3
+dcc1.dcc-servers.net,-      RTT+1000 ms  anon
+dcc2.dcc-servers.net,-      RTT+1000 ms  anon
+dcc3.dcc-servers.net,-      RTT+1000 ms  anon
+dcc4.dcc-servers.net,-      RTT+1000 ms  anon
+dcc5.dcc-servers.net,-      RTT+1000 ms  anon
+@,-                         RTT-1000 ms  32768 secret11081531865y908
+@,-                         Greylist 32768 secret11081531865y908

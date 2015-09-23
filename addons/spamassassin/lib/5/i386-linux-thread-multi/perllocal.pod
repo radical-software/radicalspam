@@ -1,0 +1,22 @@
+=head2 Sun Feb 20 09:14:26 2011: C<Module> L<Mail::SpamAssassin|Mail::SpamAssassin>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/spamassassin/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 3.003001>
+
+=item *
+
+C<EXE_FILES: sa-check_spamd sa-update sa-learn spamd/spamd sa-compile spamassassin spamc/spamc sa-awl>
+
+=back
+

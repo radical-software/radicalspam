@@ -1,0 +1,5 @@
+# Annuaire de l'entreprise - Ce fichier peut être alimenté à partir d'une extraction LDAP, SQL ou autre
+# Placez toutes les adresses pour lesquelles vous acceptez de recevoir des mails
+# 1 ligne par email ou domain
+# email@exemple.net	OK
+# @exemple2.net		OK

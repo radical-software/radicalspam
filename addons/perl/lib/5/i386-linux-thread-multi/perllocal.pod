@@ -1,0 +1,2090 @@
+=head2 Thu Feb 25 20:01:41 2010: C<Module> L<Archive::Extract|Archive::Extract>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.38>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Thu Feb 25 20:01:53 2010: C<Module> L<Archive::Tar|Archive::Tar>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.58>
+
+=item *
+
+C<EXE_FILES: bin/ptar bin/ptardiff>
+
+=back
+
+=head2 Thu Feb 25 20:02:09 2010: C<Module> L<Attribute::Handlers|Attribute::Handlers>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.87>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Thu Feb 25 20:02:34 2010: C<Module> L<AutoLoader|AutoLoader>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 5.70>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Thu Feb 25 20:02:43 2010: C<Module> L<B::Debug|B::Debug>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.12>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Thu Feb 25 20:03:15 2010: C<Module> L<Module::CoreList|Module::CoreList>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 2.26>
+
+=item *
+
+C<EXE_FILES: corelist>
+
+=back
+
+=head2 Thu Feb 25 20:03:17 2010: C<Module> L<Module::Load::Conditional|Module::Load::Conditional>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.36>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Thu Feb 25 20:04:08 2010: C<Module> L<CPANPLUS|CPANPLUS>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.9001>
+
+=item *
+
+C<EXE_FILES: bin/cpan2dist bin/cpanp bin/cpanp-run-perl>
+
+=back
+
+=head2 Thu Feb 25 20:04:26 2010: C<Module> L<CPANPLUS::Dist::Build|CPANPLUS::Dist::Build>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.46>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Thu Feb 25 20:08:44 2010: C<Module> L<Class::ISA|Class::ISA>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.36>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Thu Feb 25 20:08:58 2010: C<Module> L<Compress::Raw::Bzip2|Compress::Raw::Bzip2>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 2.024>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Thu Feb 25 20:09:17 2010: C<Module> L<Compress::Raw::Zlib|Compress::Raw::Zlib>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 2.024>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Thu Feb 25 20:09:23 2010: C<Module> L<Data::Dumper|Data::Dumper>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 2.125>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Thu Feb 25 20:09:35 2010: C<Module> L<Digest::SHA|Digest::SHA>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 5.48>
+
+=item *
+
+C<EXE_FILES: shasum>
+
+=back
+
+=head2 Thu Feb 25 20:11:28 2010: C<Module> L<Encode|Encode>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 2.39>
+
+=item *
+
+C<EXE_FILES: bin/enc2xs bin/piconv>
+
+=back
+
+=head2 Thu Feb 25 20:11:38 2010: C<Module> L<ExtUtils::CBuilder|ExtUtils::CBuilder>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.2702>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Thu Feb 25 20:12:34 2010: C<Module> L<ExtUtils::MakeMaker|ExtUtils::MakeMaker>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 6.56>
+
+=item *
+
+C<EXE_FILES: bin/instmodsh>
+
+=back
+
+=head2 Thu Feb 25 20:13:49 2010: C<Module> L<File::Fetch|File::Fetch>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.24>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Thu Feb 25 20:13:57 2010: C<Module> L<File::Path|File::Path>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 2.08>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Thu Feb 25 20:14:05 2010: C<Module> L<IO::Zlib|IO::Zlib>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.10>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Thu Feb 25 20:14:12 2010: C<Module> L<IPC::Cmd|IPC::Cmd>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.56>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Thu Feb 25 20:14:19 2010: C<Module> L<Locale::Maketext::Simple|Locale::Maketext::Simple>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.21>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Thu Feb 25 20:14:23 2010: C<Module> L<Log::Message::Simple|Log::Message::Simple>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.06>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Thu Feb 25 20:14:31 2010: C<Module> L<MIME::Base64|MIME::Base64>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 3.09>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Thu Feb 25 20:14:47 2010: C<Module> L<Math::BigRat|Math::BigRat>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.24>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Thu Feb 25 20:16:38 2010: C<Module> L<Module::Loaded|Module::Loaded>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.06>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Thu Feb 25 20:16:43 2010: C<Module> L<Object::Accessor|Object::Accessor>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.36>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Thu Feb 25 20:16:49 2010: C<Module> L<Parse::CPAN::Meta|Parse::CPAN::Meta>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.40>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Thu Feb 25 20:17:04 2010: C<Module> L<autodie|autodie>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 2.09>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Thu Feb 25 20:17:17 2010: C<Module> L<parent|parent>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.223>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Thu Feb 25 20:18:28 2010: C<Module> L<FCGI|FCGI>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.69>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Thu Feb 25 20:18:36 2010: C<Module> L<CGI|CGI>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 3.49>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Thu Feb 25 20:20:22 2010: C<Module> L<IO::Compress|IO::Compress>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/5/i386-linux-thread-multi>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 2.024>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Thu Feb 25 20:20:30 2010: C<Module> L<Cwd|Cwd>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 3.31>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Thu Feb 25 20:20:45 2010: C<Module> L<List::Util|List::Util>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.22>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 02:26:53 2010: C<Module> L<YAML|YAML>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.71>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 02:28:25 2010: C<Module> L<LWP|LWP>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 5.834>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 02:31:03 2010: C<Module> L<DBI|DBI>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.609>
+
+=item *
+
+C<EXE_FILES: dbiproxy dbiprof dbilogstrip>
+
+=back
+
+=head2 Fri Feb 26 02:31:47 2010: C<Module> L<HTML::Tagset|HTML::Tagset>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 3.20>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 02:44:25 2010: C<Module> L<URI|URI>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.52>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 02:44:53 2010: C<Module> L<HTML::Parser|HTML::Parser>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 3.64>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 02:45:08 2010: C<Module> L<Digest::SHA1|Digest::SHA1>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 2.12>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 02:45:28 2010: C<Module> L<Digest::HMAC|Digest::HMAC>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.02>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 02:45:51 2010: C<Module> L<Digest::Nilsimsa|Digest::Nilsimsa>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.06>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 02:46:12 2010: C<Module> L<Net::IP|Net::IP>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.25>
+
+=item *
+
+C<EXE_FILES: ipcount iptab>
+
+=back
+
+=head2 Fri Feb 26 02:46:28 2010: C<Module> L<Crypt::OpenSSL::Random|Crypt::OpenSSL::Random>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.04>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 02:47:14 2010: C<Module> L<Crypt::OpenSSL::DSA|Crypt::OpenSSL::DSA>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.13>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 02:47:25 2010: C<Module> L<Crypt::OpenSSL::Bignum|Crypt::OpenSSL::Bignum>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.04>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 02:47:57 2010: C<Module> L<Crypt::OpenSSL::RSA|Crypt::OpenSSL::RSA>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.26>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 02:48:08 2010: C<Module> L<Net::DNS|Net::DNS>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.66>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 02:48:51 2010: C<Module> L<Digest::BubbleBabble|Digest::BubbleBabble>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.01>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 02:49:05 2010: C<Module> L<MIME::Base32|MIME::Base32>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.01>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 02:49:25 2010: C<Module> L<Net::DNS::SEC|Net::DNS::SEC>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.15>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 02:51:14 2010: C<Module> L<TimeDate|TimeDate>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.20>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 02:51:31 2010: C<Module> L<IO::Stringy|IO::Stringy>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 2.110>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 02:51:43 2010: C<Module> L<IO::String|IO::String>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.08>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 02:51:56 2010: C<Module> L<Algorithm::Diff|Algorithm::Diff>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.1902>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 02:57:23 2010: C<Module> L<Text::Diff|Text::Diff>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.37>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 03:05:26 2010: C<Module> L<Archive::Zip|Archive::Zip>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.30>
+
+=item *
+
+C<EXE_FILES: script/crc32>
+
+=back
+
+=head2 Fri Feb 26 03:12:35 2010: C<Module> L<Mail|Mail>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 2.06>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 03:14:17 2010: C<Module> L<Unicode::Map|Unicode::Map>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.112>
+
+=item *
+
+C<EXE_FILES: tools/map tools/mirrorMappings tools/mkCSGB2312 tools/mkmapfile>
+
+=back
+
+=head2 Fri Feb 26 03:16:03 2010: C<Module> L<Unicode::String|Unicode::String>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 2.09>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 03:19:18 2010: C<Module> L<Mail|Mail>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 2.06>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 03:26:06 2010: C<Module> L<MIME::tools|MIME::tools>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 5.427>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 03:27:10 2010: C<Module> L<Convert::UUlib|Convert::UUlib>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.33>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 03:27:23 2010: C<Module> L<Convert::TNEF|Convert::TNEF>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.17>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 03:30:14 2010: C<Module> L<Unix::Syslog|Unix::Syslog>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.1>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 03:31:19 2010: C<Module> L<IO::Multiplex|IO::Multiplex>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.10>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 03:32:00 2010: C<Module> L<Net::Server|Net::Server>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.97>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 03:32:21 2010: C<Module> L<Net::CIDR::Lite|Net::CIDR::Lite>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.20>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 03:33:52 2010: C<Module> L<Sys::Hostname::Long|Sys::Hostname::Long>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.4>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 03:36:16 2010: C<Module> L<NetAddr::IP|NetAddr::IP>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 4.027>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 03:54:18 2010: C<Module> L<Test::Simple|Test::Simple>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.94>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 03:54:40 2010: C<Module> L<File::HomeDir|File::HomeDir>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.89>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 03:54:56 2010: C<Module> L<Term::ReadKey|Term::ReadKey>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 2.30>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 03:55:20 2010: C<Module> L<Term::ReadLine|Term::ReadLine>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.0303>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 03:56:07 2010: C<Module> L<IPC::Run3|IPC::Run3>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.043>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 03:56:10 2010: C<Module> L<Test::Script|Test::Script>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.07>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 03:56:13 2010: C<Module> L<File::Which|File::Which>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.09>
+
+=item *
+
+C<EXE_FILES: script/pwhich>
+
+=back
+
+=head2 Fri Feb 26 04:07:59 2010: C<Module> L<Geography::Countries|Geography::Countries>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 2009041301>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 04:08:31 2010: C<Module> L<IP::Country|IP::Country>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 2.27>
+
+=item *
+
+C<EXE_FILES: bin/ip2cc>
+
+=back
+
+=head2 Fri Feb 26 04:09:32 2010: C<Module> L<BerkeleyDB|BerkeleyDB>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.41>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 04:10:02 2010: C<Module> L<Convert::ASN1|Convert::ASN1>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.22>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 04:11:08 2010: C<Module> L<Net::SMTP::Multipart|Net::SMTP::Multipart>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.5>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 04:11:50 2010: C<Module> L<Carp::Clan|Carp::Clan>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 6.04>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 04:12:29 2010: C<Module> L<Storable|Storable>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 2.21>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 04:13:01 2010: C<Module> L<Bit::Vector|Bit::Vector>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 7.1>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 04:13:29 2010: C<Module> L<Date::Calc|Date::Calc>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 6.3>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 04:19:02 2010: C<Module> L<Net::SSLeay|Net::SSLeay>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.36>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 04:19:16 2010: C<Module> L<IO::Socket::SSL|IO::Socket::SSL>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.32>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 04:20:17 2010: C<Module> L<Mail::DKIM|Mail::DKIM>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.37>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 04:20:35 2010: C<Module> L<Module::Signature|Module::Signature>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.61>
+
+=item *
+
+C<EXE_FILES: script/cpansign>
+
+=back
+
+=head2 Fri Feb 26 04:21:29 2010: C<Module> L<Socket6|Socket6>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.23>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 11:57:08 2010: C<Module> L<Convert::BinHex|Convert::BinHex>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.119>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Feb 26 11:58:51 2010: C<Module> L<File::Which|File::Which>
+
+=over 4
+
+=item *
+
+C<installed into: /addons/perl/lib/site_perl/5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.09>
+
+=item *
+
+C<EXE_FILES: script/pwhich>
+
+=back
+

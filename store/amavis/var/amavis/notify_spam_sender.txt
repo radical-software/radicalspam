@@ -1,0 +1,15 @@
+From: %f
+Subject: Un de vos messages envoyé est considéré comme un SPAM
+Message-ID: <SS%n@%h>
+
+Votre message pour :[
+-> %R]
+
+a été considéré comme un Spam par le système de sécurité.
+
+Sujet: %j
+
+SpamAssassin report:
+[%A
+]\
+

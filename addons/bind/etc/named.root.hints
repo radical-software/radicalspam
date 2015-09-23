@@ -1,0 +1,5 @@
+zone "." IN {
+	type hint;
+	file "named.ca";
+};
+

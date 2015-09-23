@@ -1,0 +1,12 @@
+
+Pour mettre à jour RadicalSpam avec les règles fournis par le canal sa-update.radicalspam.org, vous devez être référencés sur le site http://www.radical-spam.org.
+
+La procédure se trouve à l'adresse suivante : http://www.radical-spam.org/soutiens.html#referencement
+
+L'adresse à fournir pendant le référencement est celle de votre IP public (translaté) de votre serveur RadicalSpam.
+
+Si vous pensez qu'il s'agit d'une erreur et que vous êtes déjà référencé sur le site RadicalSpam, merci d'utiliser le formulaire de contact pour le signaler.
+
+Nous vous remercions de votre compréhension.
+
+

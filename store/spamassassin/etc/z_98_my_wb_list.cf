@@ -1,0 +1,29 @@
+# Liste blanche et Liste noire des expéditeurs, utilisé directement par SpamAssassin
+# blacklist_from ... pour la Liste noire
+# whitelist_from ... pour la Liste blanche
+# Ajoutez une entrée par ligne
+# ex : *@domain.com (pour un domain complet)
+# ex : email@domain.com (pour un email)
+
+whitelist_from *@radicalspam.org
+whitelist_from *@radical-spam.org
+whitelist_from *@radicalspam.fr
+whitelist_from *@radical-spam.fr
+whitelist_from *@radicalspam.com
+whitelist_from *@radical-spam.com
+whitelist_from *@davinsys.net
+whitelist_from *@osyos-services.com
+whitelist_from *@osyosservices.com
+whitelist_from *@abakus.fr
+whitelist_from *@returns.groups.yahoo.com
+whitelist_from *@spamcop.net
+whitelist_from yahoo-dev-null@yahoo-inc.com
+whitelist_from spamassassin-talk-admin@lists.sourceforge.net
+whitelist_from owner-postfix-announce@postfix.org
+whitelist_from owner-postfix-users@postfix.org
+whitelist_from mailman-announce-admin@python.org
+whitelist_from amavis-user-admin@lists.sourceforge.net
+whitelist_from security-alerts@linuxsecurity.com
+whitelist_from bugtraq@securityfocus.com
+whitelist_from cert-advisory-owner@cert.org
+
