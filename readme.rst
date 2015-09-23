@@ -34,7 +34,7 @@ Antispam Features
 - Attachements filter
 
 Antivirus Features
-=================
+==================
 
 - Auto update
 - Includes ClamAV antivirus
@@ -44,6 +44,17 @@ Antivirus Features
 - Checks for viruses within compressed archive files like zip files
 - Catches phishing attacks
 - Updates AV signatures every 5 minutes
+
+Requirements
+============
+
+Redhat Fedora Core 2
+Redhat Entreprise ES/AS 4
+Redhat Centos 5
+Gentoo 32 et 64 bits
+Suse Entreprise Server 9
+Ubuntu Server 7
+All distributions Linux Kernel 2.6 - GLIBC 2.3 and more
 
 Contributing
 ============
