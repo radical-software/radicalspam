@@ -2,10 +2,9 @@
 High Reliable Antispam Server
 ===========================
 
-.. image:: radicalspam.png
+.. image:: https://cloud.githubusercontent.com/assets/3168276/10044129/9d2bd1f6-61f8-11e5-9d99-5eba1507d6c2.png
    :align: center
-   :scale: 50 %
-   :alt: logo
+
 
 Resume
 ======
