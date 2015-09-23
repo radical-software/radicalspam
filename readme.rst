@@ -1,15 +1,18 @@
-# RadicalSpam
-
 ===========================
 High Reliable Antispam Server
 ===========================
 
+.. image:: radicalspam.png
+   :align: center
+   :scale: 50 %
+   :alt: logo
 
 Resume
 ======
 
 :License: BSD
 :Code: https://github.com/radical-software/radicalspam
+:Editeur : http://www.radical-software.fr
 
 Antispam Features
 =================
