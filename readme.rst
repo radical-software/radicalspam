@@ -12,7 +12,8 @@ Resume
 :License: BSD
 :Code: https://github.com/radical-software/radicalspam
 :Editeur: http://www.radical-software.fr
-:Site : http://www.radical-spam.org
+
+: http://www.radical-spam.org
 
 Antispam Features
 =================
